@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "game": "CS2",
+    "stage": "Групповой этап · День 1",
+    "teamA": "Team Aurora",
+    "teamB": "Nova Squad",
+    "date": "2026-07-05",
+    "time": "18:00",
+    "status": "upcoming",
+    "score": "",
+    "stream": "https://twitch.tv/phantomcup"
+  },
+  {
+    "id": 2,
+    "game": "Dota2",
+    "stage": "Групповой этап · День 1",
+    "teamA": "Iron Wolves",
+    "teamB": "Crimson Owls",
+    "date": "2026-07-05",
+    "time": "20:30",
+    "status": "upcoming",
+    "score": "",
+    "stream": "https://twitch.tv/phantomcup"
+  },
+  {
+    "id": 3,
+    "game": "PUBG",
+    "stage": "Квалификация · Матч 3",
+    "teamA": "Ghost Riders",
+    "teamB": "Silent Storm",
+    "date": "2026-07-06",
+    "time": "17:00",
+    "status": "upcoming",
+    "score": "",
+    "stream": "https://twitch.tv/phantomcup"
+  },
+  {
+    "id": 4,
+    "game": "CS2",
+    "stage": "Плей-офф · 1/4",
+    "teamA": "Nova Squad",
+    "teamB": "Red Falcons",
+    "date": "2026-06-28",
+    "time": "19:00",
+    "status": "finished",
+    "score": "2:1",
+    "stream": "https://twitch.tv/phantomcup"
+  },
+  {
+    "id": 5,
+    "game": "Dota2",
+    "stage": "Плей-офф · 1/4",
+    "teamA": "Crimson Owls",
+    "teamB": "Golden Dragons",
+    "date": "2026-06-27",
+    "time": "21:00",
+    "status": "finished",
+    "score": "2:0",
+    "stream": "https://twitch.tv/phantomcup"
+  }
+]

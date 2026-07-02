@@ -1,0 +1,13 @@
+{
+  "siteName": "Infinity Series Tournaments",
+  "tagline": "Турниры по CS2, Dota 2 и PUBG",
+  "logo": "assets/images/logo.png",
+  "background": "assets/images/background.jpg",
+  "contacts": {
+    "email": "info@phantomcup.gg",
+    "telegram": "https://t.me/phantomcup",
+    "discord": "https://discord.gg/phantomcup",
+    "vk": "https://vk.com/phantomcup",
+    "phone": "+7 (000) 000-00-00"
+  }
+}
