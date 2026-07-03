@@ -23,6 +23,7 @@
       <a href="news.html" data-page="news">Новости</a>
       <a href="participants.html" data-page="participants">Участники</a>
       <a href="schedule.html" data-page="schedule">Расписание</a>
+      <a href="tournaments.html" data-page="tournaments">Турниры</a>
       <a href="register.html" data-page="register">Регистрация</a>
       <a href="team.html" data-page="team">Организация</a>
       <a href="contacts.html" data-page="contacts">Контакты</a>
@@ -66,6 +67,22 @@
           <label for="note">Комментарий (необязательно)</label>
           <textarea id="note" name="note" placeholder="Опыт участия в турнирах, пожелания и т.д."></textarea>
         </div>
+
+        <!-- Honeypot: невидимое человеку поле, боты часто заполняют
+             любые поля формы автоматически — если оно заполнено,
+             заявку тихо отклоняем как спам. -->
+        <div class="form-field hp-field" aria-hidden="true">
+          <label for="website">Оставьте это поле пустым</label>
+          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="form-field">
+          <label for="captchaAnswer" class="captcha-question" id="captcha-question">Проверка: сколько будет?</label>
+          <div class="captcha-row">
+            <input id="captchaAnswer" name="captchaAnswer" type="number" required>
+          </div>
+        </div>
+
         <div id="register-status" style="margin-bottom:14px; font-size:14px;"></div>
         <button class="btn" id="register-submit" type="submit">Отправить заявку</button>
       </form>

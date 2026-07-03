@@ -2,7 +2,7 @@
    Infinity Series Tournaments — общий скрипт сайта
    Ничего в этом файле редактировать НЕ нужно, чтобы:
    - поменять лого/фон  → data/config.json
-   - поменять расписание → data/schedule.json (или admin.html)
+   - поменять расписание → через admin.html (хранится в Firebase)
    - поменять новости     → data/news.json
    - поменять состав команды → data/team.json
 ========================================================= */
@@ -137,9 +137,23 @@ function matchCardHTML(m, i){
   </div>`;
 }
 
+/* ---------- расписание: теперь хранится в Firebase (Firestore),
+   коллекция "schedule" — редактируется прямо из admin.html,
+   без правок кода и коммитов в git. ---------- */
+async function loadSchedule(){
+  if(typeof db === 'undefined') return [];
+  try{
+    const snap = await db.collection('schedule').get();
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }catch(e){
+    console.warn('Не удалось загрузить расписание из Firebase', e);
+    return [];
+  }
+}
+
 /* ---------- страница: главная ---------- */
 async function renderHomePreview(){
-  const [schedule, news] = await Promise.all([loadJSON('schedule'), loadJSON('news')]);
+  const [schedule, news] = await Promise.all([loadSchedule(), loadJSON('news')]);
 
   const upcomingWrap = document.querySelector('[data-role="home-upcoming"]');
   if(upcomingWrap){
@@ -162,7 +176,7 @@ async function renderHomePreview(){
 async function renderSchedulePage(){
   const wrap = document.querySelector('[data-role="schedule-list"]');
   if(!wrap) return;
-  const schedule = (await loadJSON('schedule')) || [];
+  const schedule = (await loadSchedule()) || [];
   schedule.sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
 
   function draw(filter){

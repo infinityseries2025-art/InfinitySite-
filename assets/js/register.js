@@ -2,6 +2,13 @@
    Регистрация команды — заявка уходит в Firestore
    со статусом "pending" и появляется в панели admin.html
    для одобрения/отклонения организатором.
+
+   Минимальная защита от ботов/спама (без сторонних сервисов):
+   1) honeypot-поле — невидимое человеку, боты часто его заполняют;
+   2) time-trap — форма, отправленная быстрее чем за 3 секунды
+      после загрузки страницы, считается ботом;
+   3) простая математическая проверка (капча);
+   4) ограничение частоты отправки с одного браузера (localStorage).
 ========================================================= */
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('register-form');
@@ -9,10 +16,56 @@ document.addEventListener('DOMContentLoaded', () => {
   const submitBtn = document.getElementById('register-submit');
   if(!form) return;
 
+  const pageLoadedAt = Date.now();
+  const MIN_FILL_TIME_MS = 3000;
+  const RATE_LIMIT_MS = 10 * 60 * 1000; // одна заявка раз в 10 минут с браузера
+  const RATE_LIMIT_KEY = 'ist_last_register_submit';
+
+  // Капча: два случайных числа, генерируются при каждой загрузке страницы
+  const captchaA = Math.floor(Math.random() * 8) + 2;
+  const captchaB = Math.floor(Math.random() * 8) + 1;
+  const captchaAnswer = captchaA + captchaB;
+  const captchaLabel = document.getElementById('captcha-question');
+  if(captchaLabel) captchaLabel.textContent = `Проверка: сколько будет ${captchaA} + ${captchaB}?`;
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     statusBox.className = '';
     statusBox.textContent = '';
+
+    // 1) honeypot — если заполнено, тихо считаем спамом
+    if(form.website && form.website.value.trim() !== ''){
+      statusBox.textContent = 'Заявка отправлена! Она появится на сайте после проверки организатором.';
+      statusBox.className = 'form-msg success';
+      form.reset();
+      return;
+    }
+
+    // 2) time-trap — слишком быстрая отправка похожа на бота
+    if(Date.now() - pageLoadedAt < MIN_FILL_TIME_MS){
+      statusBox.textContent = 'Форма отправлена слишком быстро — попробуй ещё раз.';
+      statusBox.className = 'form-msg error';
+      return;
+    }
+
+    // 3) капча
+    const givenAnswer = Number(form.captchaAnswer.value);
+    if(givenAnswer !== captchaAnswer){
+      statusBox.textContent = 'Неверный ответ на проверочный вопрос — попробуй ещё раз.';
+      statusBox.className = 'form-msg error';
+      return;
+    }
+
+    // 4) частота отправки с этого браузера
+    try{
+      const last = Number(localStorage.getItem(RATE_LIMIT_KEY) || 0);
+      if(Date.now() - last < RATE_LIMIT_MS){
+        const waitMin = Math.ceil((RATE_LIMIT_MS - (Date.now() - last)) / 60000);
+        statusBox.textContent = `Заявка с этого устройства уже отправлялась недавно. Попробуй снова через ${waitMin} мин.`;
+        statusBox.className = 'form-msg error';
+        return;
+      }
+    }catch(e){ /* localStorage недоступен — пропускаем эту проверку */ }
 
     const data = {
       teamName: form.teamName.value.trim(),
@@ -36,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try{
       await db.collection('teamApplications').add(data);
+      try{ localStorage.setItem(RATE_LIMIT_KEY, String(Date.now())); }catch(e){}
       form.reset();
       statusBox.textContent = 'Заявка отправлена! Она появится на сайте после проверки организатором.';
       statusBox.className = 'form-msg success';

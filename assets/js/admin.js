@@ -1,7 +1,20 @@
-const rowsBody = document.getElementById('admin-rows');
+/* =========================================================
+   Панель организатора:
+   1) Редактор расписания — читает/пишет напрямую в Firestore
+      (коллекция "schedule"), изменения видны на сайте сразу,
+      без скачивания файлов и коммитов в git.
+   2) Турниры — создание сетки на выбывание для каждого турнира,
+      простановка результатов матчей, автоматическое начисление
+      рейтинга Эло командам и титула победителя по завершении.
+========================================================= */
 
-function rowTemplate(m = {}){
+/* ---------------------- РАСПИСАНИЕ ---------------------- */
+const rowsBody = document.getElementById('admin-rows');
+let scheduleUnsub = null;
+
+function rowTemplate(id, m = {}){
   const tr = document.createElement('tr');
+  tr.setAttribute('data-id', id || '');
   tr.innerHTML = `
     <td>
       <select class="f-game">
@@ -26,32 +39,11 @@ function rowTemplate(m = {}){
     <td><input class="f-stream" type="text" value="${m.stream||''}" placeholder="https://twitch.tv/..."></td>
     <td><button type="button" class="row-remove" title="Удалить">✕</button></td>
   `;
-  tr.querySelector('.row-remove').addEventListener('click', () => tr.remove());
   return tr;
 }
 
-async function initAdmin(){
-  let existing = [];
-  try{
-    const res = await fetch('data/schedule.json', { cache:'no-store' });
-    if(res.ok) existing = await res.json();
-  }catch(e){ /* пусто, начнём с чистой таблицы */ }
-
-  if(existing.length){
-    existing.forEach(m => rowsBody.appendChild(rowTemplate(m)));
-  }else{
-    rowsBody.appendChild(rowTemplate());
-  }
-}
-
-document.getElementById('add-row').addEventListener('click', () => {
-  rowsBody.appendChild(rowTemplate());
-});
-
-document.getElementById('build-json').addEventListener('click', () => {
-  const rows = [...rowsBody.querySelectorAll('tr')];
-  const data = rows.map((tr, i) => ({
-    id: i + 1,
+function readRow(tr){
+  return {
     game: tr.querySelector('.f-game').value,
     stage: tr.querySelector('.f-stage').value,
     teamA: tr.querySelector('.f-teamA').value,
@@ -61,19 +53,220 @@ document.getElementById('build-json').addEventListener('click', () => {
     status: tr.querySelector('.f-status').value,
     score: tr.querySelector('.f-score').value,
     stream: tr.querySelector('.f-stream').value,
-  }));
-  const json = JSON.stringify(data, null, 2);
-  document.getElementById('json-output').value = json;
+  };
+}
 
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'schedule.json';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+function startScheduleListener(){
+  if(scheduleUnsub) return;
+  scheduleUnsub = db.collection('schedule').orderBy('date').orderBy('time')
+    .onSnapshot((snap) => {
+      rowsBody.innerHTML = '';
+      snap.forEach(doc => rowsBody.appendChild(rowTemplate(doc.id, doc.data())));
+    }, (err) => {
+      console.error(err);
+    });
+}
+function stopScheduleListener(){
+  if(scheduleUnsub){ scheduleUnsub(); scheduleUnsub = null; }
+}
+
+// Сохраняем изменения поля сразу, как только организатор его поправил
+rowsBody.addEventListener('change', async (e) => {
+  const tr = e.target.closest('tr');
+  if(!tr) return;
+  const id = tr.getAttribute('data-id');
+  if(!id) return; // ещё не сохранённая (только что созданная) строка — пропустить
+  try{
+    await db.collection('schedule').doc(id).update(readRow(tr));
+  }catch(err){
+    console.error(err);
+    alert('Не удалось сохранить изменение. Попробуй ещё раз.');
+  }
 });
 
-initAdmin();
+rowsBody.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.row-remove');
+  if(!btn) return;
+  const tr = btn.closest('tr');
+  const id = tr.getAttribute('data-id');
+  if(!confirm('Удалить этот матч из расписания?')) return;
+  try{
+    if(id) await db.collection('schedule').doc(id).delete();
+    else tr.remove();
+  }catch(err){
+    console.error(err);
+    alert('Не удалось удалить матч.');
+  }
+});
+
+document.getElementById('add-row').addEventListener('click', async () => {
+  try{
+    await db.collection('schedule').add({
+      game: 'CS2', stage: '', teamA: '', teamB: '',
+      date: '', time: '', status: 'upcoming', score: '', stream: '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  }catch(err){
+    console.error(err);
+    alert('Не удалось создать новый матч.');
+  }
+});
+
+/* ---------------------- ТУРНИРЫ И ЭЛО ---------------------- */
+const tournamentForm = document.getElementById('tournament-form');
+const tournamentsWrap = document.getElementById('tournaments-admin-list');
+let tournamentsCache = [];
+let tournamentsUnsub = null;
+
+function tournamentAdminCardHTML(t){
+  const winnerReady = t.status === 'ongoing' && tournamentWinner(t.rounds);
+  const statusBadge = t.status === 'finished'
+    ? `<span class="status-tag finished">Завершён</span>`
+    : `<span class="status-tag live">Идёт сейчас</span>`;
+  const winnerLine = t.status === 'finished' && t.winner
+    ? `<div class="tournament-winner">🏆 Победитель — <strong>${t.winner}</strong> (титул и Эло уже начислены)</div>`
+    : '';
+  return `
+  <div class="card tournament-card">
+    <div class="tournament-head">
+      <div>
+        <span class="game-tag ${(t.game || 'CS2').toLowerCase()}">${t.game}</span>
+        <h3>${t.name}</h3>
+      </div>
+      ${statusBadge}
+    </div>
+    ${winnerLine}
+    ${bracketHTML(t, { isAdmin: t.status === 'ongoing' })}
+    ${winnerReady ? `<button type="button" class="btn finish-tournament" data-tid="${t.id}">Завершить турнир и наградить победителя</button>` : ''}
+  </div>`;
+}
+
+function startTournamentsListener(){
+  if(tournamentsUnsub || !tournamentsWrap) return;
+  tournamentsUnsub = db.collection('tournaments').orderBy('createdAt', 'desc')
+    .onSnapshot((snap) => {
+      tournamentsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      tournamentsWrap.innerHTML = tournamentsCache.length
+        ? tournamentsCache.map(tournamentAdminCardHTML).join('')
+        : `<div class="empty-state">Турниров пока нет — создай первый выше.</div>`;
+    }, (err) => console.error(err));
+}
+function stopTournamentsListener(){
+  if(tournamentsUnsub){ tournamentsUnsub(); tournamentsUnsub = null; }
+}
+
+if(tournamentForm){
+  tournamentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = tournamentForm.tName.value.trim();
+    const game = tournamentForm.tGame.value;
+    const teamNames = tournamentForm.tTeams.value.split('\n').map(s => s.trim()).filter(Boolean);
+    if(!name || teamNames.length < 2){
+      alert('Укажи название турнира и минимум 2 команды (по одной на строке).');
+      return;
+    }
+    const rounds = buildBracket(teamNames);
+    try{
+      await db.collection('tournaments').add({
+        name, game, rounds,
+        status: 'ongoing',
+        winner: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      tournamentForm.reset();
+    }catch(err){
+      console.error(err);
+      alert('Не удалось создать турнир.');
+    }
+  });
+}
+
+if(tournamentsWrap){
+  tournamentsWrap.addEventListener('click', async (e) => {
+    const pickBtn = e.target.closest('.bracket-pick');
+    if(pickBtn){
+      const tid = pickBtn.getAttribute('data-tid');
+      const ri = Number(pickBtn.getAttribute('data-round'));
+      const mi = Number(pickBtn.getAttribute('data-match'));
+      const team = pickBtn.getAttribute('data-team');
+      const t = tournamentsCache.find(x => x.id === tid);
+      if(!t) return;
+      const rounds = t.rounds.map(r => ({ matches: r.matches.map(m => ({ ...m })) }));
+      const match = rounds[ri].matches[mi];
+      match.winner = team === 'A' ? match.teamA : match.teamB;
+      const advanced = advanceRounds(rounds);
+      try{
+        await db.collection('tournaments').doc(tid).update({ rounds: advanced });
+      }catch(err){
+        console.error(err);
+        alert('Не удалось сохранить результат матча.');
+      }
+      return;
+    }
+
+    const finishBtn = e.target.closest('.finish-tournament');
+    if(finishBtn){
+      const tid = finishBtn.getAttribute('data-tid');
+      const t = tournamentsCache.find(x => x.id === tid);
+      if(!t) return;
+      await finishTournament(t);
+    }
+  });
+}
+
+/* Начисляет Эло за каждый сыгранный матч турнира и выдаёт титул
+   победителю, например «Обладатели трофея IST Season 1». */
+async function finishTournament(t){
+  const winnerName = tournamentWinner(t.rounds);
+  if(!winnerName) return;
+  if(!confirm(`Завершить турнир «${t.name}»?\nПобедитель: ${winnerName}.\nВсем участникам будет пересчитан рейтинг Эло, а победителю выдан титул.`)) return;
+
+  const matches = playedMatches(t.rounds);
+  try{
+    for(const m of matches){
+      const winnerIsA = m.winner === m.teamA;
+      const wName = winnerIsA ? m.teamA : m.teamB;
+      const lName = winnerIsA ? m.teamB : m.teamA;
+      const wRef = db.collection('teams').doc(slugTeam(t.game, wName));
+      const lRef = db.collection('teams').doc(slugTeam(t.game, lName));
+      await db.runTransaction(async (tx) => {
+        const [wSnap, lSnap] = await Promise.all([tx.get(wRef), tx.get(lRef)]);
+        const wElo = wSnap.exists && wSnap.data().elo ? wSnap.data().elo : 1000;
+        const lElo = lSnap.exists && lSnap.data().elo ? lSnap.data().elo : 1000;
+        const { newWinner, newLoser } = eloUpdate(wElo, lElo);
+        tx.set(wRef, {
+          name: wName, game: t.game, elo: newWinner,
+          wins: firebase.firestore.FieldValue.increment(1),
+        }, { merge: true });
+        tx.set(lRef, {
+          name: lName, game: t.game, elo: newLoser,
+          losses: firebase.firestore.FieldValue.increment(1),
+        }, { merge: true });
+      });
+    }
+
+    const champRef = db.collection('teams').doc(slugTeam(t.game, winnerName));
+    await champRef.set({
+      name: winnerName,
+      game: t.game,
+      trophies: firebase.firestore.FieldValue.arrayUnion(`${TROPHY_PREFIX} ${t.name}`),
+    }, { merge: true });
+
+    await db.collection('tournaments').doc(t.id).update({ status: 'finished', winner: winnerName });
+  }catch(err){
+    console.error(err);
+    alert('Не удалось завершить турнир — попробуй ещё раз.');
+  }
+}
+
+/* Слушатели расписания/турниров включаются только когда организатор
+   вошёл в систему (см. admin-auth.js → auth.onAuthStateChanged). */
+auth.onAuthStateChanged((user) => {
+  if(user){
+    startScheduleListener();
+    startTournamentsListener();
+  }else{
+    stopScheduleListener();
+    stopTournamentsListener();
+  }
+});

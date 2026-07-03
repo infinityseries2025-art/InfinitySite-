@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Панель редактирования расписания</title>
+<title>Панель организатора</title>
 <link rel="icon" href="assets/images/favicon.png">
 <link rel="stylesheet" href="assets/css/style.css">
 <style>
@@ -17,10 +17,7 @@
   .row-remove{ background:none; border:none; color:var(--status-live); font-weight:800; cursor:pointer; font-size:16px; }
   .admin-actions{ display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
   .btn.secondary{ background:var(--color-surface); color:var(--color-accent-deep); border:1px solid var(--color-primary-line); }
-  textarea#json-output{
-    width:100%; min-height:220px; margin-top:16px; font-family:monospace; font-size:12.5px;
-    padding:14px; border-radius:10px; border:1px solid var(--color-primary-line); background:var(--color-ink); color:#EDE1F2;
-  }
+  #tournament-form textarea{ min-height:130px; }
   .app-card{ padding:16px 18px; display:flex; flex-direction:column; gap:8px; }
   .app-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
   .app-actions{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -29,12 +26,12 @@
     background:var(--color-surface-alt); color:var(--color-text); font-weight:700; font-size:12.5px; cursor:pointer;
     transition:all .2s ease;
   }
-  .app-actions .approve:hover{ background:var(--status-upcoming); border-color:var(--status-upcoming); color:#15160F; }
+  .app-actions .approve:hover{ background:var(--status-upcoming); border-color:var(--status-upcoming); color:#1C1D21; }
   .app-actions .reject:hover{ background:var(--status-live); border-color:var(--status-live); color:#fff; }
   .app-actions .delete:hover{ background:#3a2b2b; border-color:var(--status-live); color:var(--status-live); }
   .app-status-badge{ padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; }
-  .app-status-badge.pending{ background:var(--status-upcoming); color:#15160F; }
-  .app-status-badge.approved{ background:var(--color-accent); color:#15160F; }
+  .app-status-badge.pending{ background:var(--status-upcoming); color:#1C1D21; }
+  .app-status-badge.approved{ background:var(--color-accent); color:#1C1D21; }
   .app-status-badge.rejected{ background:var(--status-live); color:#fff; }
 </style>
 </head>
@@ -54,6 +51,7 @@
       <a href="news.html" data-page="news">Новости</a>
       <a href="participants.html" data-page="participants">Участники</a>
       <a href="schedule.html" data-page="schedule">Расписание</a>
+      <a href="tournaments.html" data-page="tournaments">Турниры</a>
       <a href="register.html" data-page="register">Регистрация</a>
       <a href="team.html" data-page="team">Организация</a>
       <a href="contacts.html" data-page="contacts">Контакты</a>
@@ -103,8 +101,8 @@
       <span class="eyebrow">Расписание</span>
       <h2>Редактор расписания</h2>
       <p class="tagline">
-        Добавляй/удаляй матчи в таблице, потом нажми «Скачать schedule.json» и замени этим файлом <code>data/schedule.json</code> в репозитории на GitHub
-        (можно прямо в вебе: открой файл в репозитории → карандаш «Edit» → вставь содержимое из поля ниже → Commit changes).
+        Все изменения сохраняются автоматически в Firebase, как только ты меняешь поле — сайт подхватывает их сразу,
+        никаких файлов скачивать и коммитить в git не нужно.
       </p>
 
       <table class="admin-table" id="admin-table">
@@ -127,10 +125,42 @@
 
       <div class="admin-actions">
         <button class="btn secondary" id="add-row">+ Добавить матч</button>
-        <button class="btn" id="build-json">Сформировать / скачать schedule.json</button>
+      </div>
+    </section>
+
+    <section class="section container reveal">
+      <span class="eyebrow">Турниры</span>
+      <h2>Создать турнир</h2>
+      <p class="tagline">
+        Укажи название (например, «IST Season 1»), игру и список команд — по одной на строке.
+        Сетка на выбывание строится автоматически. По ходу турнира отмечай победителя в каждом матче,
+        а когда сетка дойдёт до финала — нажми «Завершить турнир»: всем участникам пересчитается
+        рейтинг Эло, а победитель автоматически получит титул «Обладатели трофея {название турнира}».
+      </p>
+      <div class="card contact-card" style="max-width:640px;">
+        <form id="tournament-form">
+          <div class="form-field">
+            <label for="tName">Название турнира</label>
+            <input id="tName" name="tName" type="text" required maxlength="80" placeholder="IST Season 1">
+          </div>
+          <div class="form-field">
+            <label for="tGame">Игра</label>
+            <select id="tGame" name="tGame" style="width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-family:var(--font-body); font-size:14px;">
+              <option value="CS2">CS2</option>
+              <option value="Dota2">Dota 2</option>
+              <option value="PUBG">PUBG</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="tTeams">Команды (по одной на строке, минимум 2)</label>
+            <textarea id="tTeams" name="tTeams" required placeholder="Team Aurora&#10;Nova Squad&#10;Iron Wolves&#10;Crimson Owls"></textarea>
+          </div>
+          <button class="btn" type="submit">Создать турнир и сетку</button>
+        </form>
       </div>
 
-      <textarea id="json-output" placeholder="Здесь появится готовый JSON после нажатия «Сформировать»..." readonly></textarea>
+      <h2 style="margin-top:36px;">Активные и завершённые турниры</h2>
+      <div id="tournaments-admin-list"></div>
     </section>
 
   </div>
@@ -148,6 +178,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="assets/js/firebase-config.js"></script>
 <script src="assets/js/main.js"></script>
+<script src="assets/js/tournament-shared.js"></script>
 <script src="assets/js/admin-auth.js"></script>
 <script src="assets/js/admin.js"></script>
 </body>
