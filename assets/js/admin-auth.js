@@ -19,13 +19,38 @@ function isAdminUser(user){
     user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
 }
 
-auth.onAuthStateChanged((user) => {
-  if(isAdminUser(user)){
+/* Модератор — обычный аккаунт (заведённый на account.html), которому
+   организатор выдал role:"moderator" в профиле (users/{uid} в Firestore,
+   см. раздел "Аккаунты игроков" в этой панели). Модератор получает доступ
+   в панель, но раздел управления аккаунтами видит только организатор. */
+async function checkModerator(user){
+  if(!user || typeof db === 'undefined') return false;
+  try{
+    const snap = await db.collection('users').doc(user.uid).get();
+    const d = snap.exists ? snap.data() : {};
+    return !!(d.role === 'moderator' && !d.banned);
+  }catch(e){
+    console.warn('Не удалось проверить статус модератора', e);
+    return false;
+  }
+}
+
+let currentPanelRole = null; // 'owner' | 'moderator' | null
+
+auth.onAuthStateChanged(async (user) => {
+  const owner = isAdminUser(user);
+  const moderator = !owner && (await checkModerator(user));
+  currentPanelRole = owner ? 'owner' : (moderator ? 'moderator' : null);
+
+  if(owner || moderator){
     loginSection.style.display = 'none';
     contentSection.style.display = 'block';
     // элементы .reveal внутри панели уже в DOM (просто были скрыты) —
     // показываем их сразу, не дожидаясь скролла
     contentSection.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
+    // раздел управления аккаунтами (баны, роли) виден только организатору
+    const usersSection = document.getElementById('users-admin-section');
+    if(usersSection) usersSection.style.display = owner ? 'block' : 'none';
     startApplicationsListener();
   }else{
     // сюда попадает и гость, и обычный пользователь (создавший аккаунт на
@@ -45,9 +70,10 @@ loginForm.addEventListener('submit', async (e) => {
   const password = loginForm.password.value;
   try{
     const cred = await auth.signInWithEmailAndPassword(email, password);
-    if(!isAdminUser(cred.user)){
+    const allowed = isAdminUser(cred.user) || (await checkModerator(cred.user));
+    if(!allowed){
       await auth.signOut();
-      loginStatus.textContent = 'Этот аккаунт не является администраторским. Панель организатора доступна только по email, указанному в ADMIN_EMAIL (assets/js/firebase-config.js).';
+      loginStatus.textContent = 'Этот аккаунт не является администраторским или модераторским. Доступ в панель есть только у email из ADMIN_EMAIL и у аккаунтов, которым организатор выдал статус модератора в разделе «Аккаунты игроков».';
       loginStatus.className = 'form-msg error';
     }
   }catch(err){

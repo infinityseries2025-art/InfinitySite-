@@ -27,6 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
   ----------------------------------------------------- */
   const nicknameToUid = new Map(); // ключ — ник в нижнем регистре
   const nicknameDatalist = document.getElementById('known-nicknames');
+  const gameSelect = document.getElementById('game');
+
+  (async () => {
+    try{
+      const games = await loadGamesList();
+      if(gameSelect && games.length){
+        gameSelect.innerHTML = games.map(g => `<option value="${g}">${gameLabel[g] || g}</option>`).join('');
+      }
+    }catch(err){
+      console.warn('Не удалось загрузить список игр', err);
+    }
+  })();
 
   (async () => {
     try{
@@ -170,6 +182,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // 3.5) согласие с правилами сайта и турниров — обязательно
+    if(form.agreeRules && !form.agreeRules.checked){
+      statusBox.textContent = 'Нужно подтвердить согласие с правилами сайта и турниров, чтобы отправить заявку.';
+      statusBox.className = 'form-msg error';
+      return;
+    }
+
     // 4) частота отправки с этого браузера
     try{
       const last = Number(localStorage.getItem(RATE_LIMIT_KEY) || 0);
@@ -193,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
       contact: form.contact.value.trim(),
       roster,
       note: form.note.value.trim(),
+      agreedRules: true,
       status: 'pending',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };

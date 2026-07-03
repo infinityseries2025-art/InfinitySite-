@@ -11,6 +11,13 @@
 /* ---------------------- РАСПИСАНИЕ ---------------------- */
 const rowsBody = document.getElementById('admin-rows');
 let scheduleUnsub = null;
+let gamesListCache = ['CS2', 'Dota2', 'PUBG'];
+
+function gameOptionsHTML(selected){
+  return gamesListCache.map(g =>
+    `<option value="${g}" ${g === selected ? 'selected' : ''}>${gameLabel[g] || g}</option>`
+  ).join('');
+}
 
 function rowTemplate(id, m = {}){
   const tr = document.createElement('tr');
@@ -18,9 +25,7 @@ function rowTemplate(id, m = {}){
   tr.innerHTML = `
     <td>
       <select class="f-game">
-        <option value="CS2" ${m.game==='CS2'?'selected':''}>CS2</option>
-        <option value="Dota2" ${m.game==='Dota2'?'selected':''}>Dota 2</option>
-        <option value="PUBG" ${m.game==='PUBG'?'selected':''}>PUBG</option>
+        ${gameOptionsHTML(m.game)}
       </select>
     </td>
     <td><input class="f-stage" type="text" value="${m.stage||''}" placeholder="Групповой этап"></td>
@@ -166,6 +171,43 @@ addRowBtn.addEventListener('click', async () => {
   }
 });
 
+/* ---------------------- СПИСОК ИГР ---------------------- */
+const tGameSelect = document.getElementById('tGame');
+const newGameInput = document.getElementById('newGameName');
+const addGameBtn = document.getElementById('add-game-btn');
+
+async function refreshGamesList(){
+  gamesListCache = await loadGamesList();
+  if(tGameSelect){
+    const current = tGameSelect.value;
+    tGameSelect.innerHTML = gameOptionsHTML(gamesListCache.includes(current) ? current : gamesListCache[0]);
+  }
+  // у уже отрисованных строк расписания список игр не трогаем — только у новых
+}
+
+if(addGameBtn){
+  addGameBtn.addEventListener('click', async () => {
+    const name = (newGameInput.value || '').trim();
+    if(!name){ alert('Введи название игры.'); return; }
+    if(gamesListCache.some(g => g.toLowerCase() === name.toLowerCase())){
+      alert('Такая игра уже есть в списке.');
+      return;
+    }
+    addGameBtn.disabled = true;
+    try{
+      await addCustomGame(name);
+      await refreshGamesList();
+      if(tGameSelect) tGameSelect.value = name;
+      newGameInput.value = '';
+    }catch(err){
+      console.error(err);
+      alert('Не удалось добавить игру. Попробуй ещё раз.');
+    }finally{
+      addGameBtn.disabled = false;
+    }
+  });
+}
+
 /* ---------------------- ТУРНИРЫ И ЭЛО ---------------------- */
 const tournamentForm = document.getElementById('tournament-form');
 const tournamentsWrap = document.getElementById('tournaments-admin-list');
@@ -184,14 +226,17 @@ function tournamentAdminCardHTML(t){
   <div class="card tournament-card">
     <div class="tournament-head">
       <div>
-        <span class="game-tag ${(t.game || 'CS2').toLowerCase()}">${t.game}</span>
+        <span class="game-tag ${gameClass[t.game] || 'custom'}">${t.game}</span>
         <h3>${t.name}</h3>
       </div>
       ${statusBadge}
     </div>
     ${winnerLine}
     ${bracketHTML(t, { isAdmin: t.status === 'ongoing' })}
-    ${winnerReady ? `<button type="button" class="btn finish-tournament" data-tid="${t.id}">Завершить турнир и наградить победителя</button>` : ''}
+    <div class="admin-actions" style="margin-top:14px;">
+      ${winnerReady ? `<button type="button" class="btn finish-tournament" data-tid="${t.id}">Завершить турнир и наградить победителя</button>` : ''}
+      <button type="button" class="btn secondary delete-tournament" data-tid="${t.id}">Удалить турнир</button>
+    </div>
   </div>`;
 }
 
@@ -264,6 +309,22 @@ if(tournamentsWrap){
       const t = tournamentsCache.find(x => x.id === tid);
       if(!t) return;
       await finishTournament(t);
+      return;
+    }
+
+    const deleteBtn = e.target.closest('.delete-tournament');
+    if(deleteBtn){
+      const tid = deleteBtn.getAttribute('data-tid');
+      const t = tournamentsCache.find(x => x.id === tid);
+      if(!confirm(`Удалить турнир «${t ? t.name : ''}» без возможности восстановления?\nСетка и данные турнира будут удалены. Уже начисленный Эло командам не отменится.`)) return;
+      deleteBtn.disabled = true;
+      try{
+        await db.collection('tournaments').doc(tid).delete();
+      }catch(err){
+        console.error(err);
+        alert('Не удалось удалить турнир. Попробуй ещё раз.');
+        deleteBtn.disabled = false;
+      }
     }
   });
 }
@@ -432,16 +493,122 @@ if(newsList){
   });
 }
 
+/* ---------------------- АККАУНТЫ ИГРОКОВ (баны, роль модератора) ----------------------
+   Видно и доступно только организатору (ADMIN_EMAIL) — см. admin-auth.js,
+   который скрывает #users-admin-section для модераторов. */
+const usersList = document.getElementById('users-admin-list');
+let usersUnsub = null;
+
+function userAdminCardHTML(u){
+  const nickname = u.nickname || '(без ника)';
+  const roleBadge = u.role === 'moderator' ? `<span class="app-status-badge approved">Модератор</span>` : '';
+  const banBadge = u.banned ? `<span class="app-status-badge rejected">Забанен</span>` : '';
+  return `
+  <div class="card app-card" data-id="${u.id}">
+    <div class="app-top">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="team-avatar" style="width:36px; height:36px; margin:0; flex:none; font-size:13px;">
+          ${u.avatar ? `<img src="${u.avatar}" alt="${nickname}">` : nickname.slice(0,2).toUpperCase()}
+        </div>
+        <strong>${nickname}</strong>
+      </div>
+      <div style="display:flex; gap:6px;">${roleBadge}${banBadge}</div>
+    </div>
+    <div style="font-size:12.5px; color:var(--color-ink-soft); word-break:break-all;">UID: ${u.id}</div>
+    <div class="app-actions">
+      <button type="button" class="toggle-mod" data-id="${u.id}" data-value="${u.role === 'moderator' ? '' : 'moderator'}">
+        ${u.role === 'moderator' ? 'Снять модератора' : 'Сделать модератором'}
+      </button>
+      <button type="button" class="toggle-ban" data-id="${u.id}" data-value="${u.banned ? '' : '1'}">
+        ${u.banned ? 'Разбанить' : 'Забанить'}
+      </button>
+      <button type="button" class="delete-user" data-id="${u.id}">Удалить профиль</button>
+    </div>
+  </div>`;
+}
+
+function startUsersListener(){
+  if(usersUnsub || !usersList) return;
+  usersUnsub = db.collection('users').onSnapshot((snap) => {
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    usersList.innerHTML = list.length
+      ? list.map(userAdminCardHTML).join('')
+      : `<div class="empty-state">Пока никто не создал профиль на сайте.</div>`;
+  }, (err) => {
+    console.error(err);
+    usersList.innerHTML = `<div class="empty-state">Не удалось загрузить аккаунты.</div>`;
+  });
+}
+function stopUsersListener(){
+  if(usersUnsub){ usersUnsub(); usersUnsub = null; }
+}
+
+if(usersList){
+  usersList.addEventListener('click', async (e) => {
+    const modBtn = e.target.closest('.toggle-mod');
+    const banBtn = e.target.closest('.toggle-ban');
+    const delBtn = e.target.closest('.delete-user');
+
+    if(modBtn){
+      const uid = modBtn.getAttribute('data-id');
+      const value = modBtn.getAttribute('data-value');
+      modBtn.disabled = true;
+      try{
+        await db.collection('users').doc(uid).set({ role: value || firebase.firestore.FieldValue.delete() }, { merge: true });
+      }catch(err){
+        console.error(err);
+        alert('Не удалось изменить роль.');
+      }finally{
+        modBtn.disabled = false;
+      }
+      return;
+    }
+
+    if(banBtn){
+      const uid = banBtn.getAttribute('data-id');
+      const value = banBtn.getAttribute('data-value') === '1';
+      if(value && !confirm('Забанить этот аккаунт? Он не сможет заходить в личный кабинет, пока бан не снят.')) return;
+      banBtn.disabled = true;
+      try{
+        await db.collection('users').doc(uid).set({ banned: value }, { merge: true });
+      }catch(err){
+        console.error(err);
+        alert('Не удалось изменить статус бана.');
+      }finally{
+        banBtn.disabled = false;
+      }
+      return;
+    }
+
+    if(delBtn){
+      const uid = delBtn.getAttribute('data-id');
+      if(!confirm('Удалить профиль этого игрока без возможности восстановления?\nНик, аватар и описание будут удалены. Сам email/вход в Firebase Authentication при этом останется — его можно отключить вручную в Firebase Console → Authentication → Users.')) return;
+      delBtn.disabled = true;
+      try{
+        await db.collection('users').doc(uid).delete();
+      }catch(err){
+        console.error(err);
+        alert('Не удалось удалить профиль.');
+        delBtn.disabled = false;
+      }
+    }
+  });
+}
+
 /* Слушатели расписания/турниров включаются только когда организатор
    вошёл в систему (см. admin-auth.js → auth.onAuthStateChanged). */
-auth.onAuthStateChanged((user) => {
-  if(isAdminUser(user)){
+auth.onAuthStateChanged(async (user) => {
+  if(isAdminUser(user) || await checkModerator(user)){
+    gamesListCache = await loadGamesList();
+    if(tGameSelect) tGameSelect.innerHTML = gameOptionsHTML(gamesListCache[0]);
     startScheduleListener();
     startTournamentsListener();
     startNewsListener();
+    if(isAdminUser(user)) startUsersListener();
   }else{
     stopScheduleListener();
     stopTournamentsListener();
     stopNewsListener();
+    stopUsersListener();
   }
 });

@@ -16,7 +16,7 @@ function tournamentCardHTML(t){
   <div class="card tournament-card">
     <div class="tournament-head">
       <div>
-        <span class="game-tag ${(t.game || 'CS2').toLowerCase()}">${gameLabelT[t.game] || t.game}</span>
+        <span class="game-tag ${gameClass[t.game] || 'custom'}">${gameLabelT[t.game] || t.game}</span>
         <h3>${t.name}</h3>
       </div>
       ${statusBadge}
@@ -74,13 +74,18 @@ async function renderLeaderboard(){
     const rows = teams.filter(t => t.game === game).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
     tableWrap.innerHTML = `
     <div class="leaderboard-table">
-      ${rows.map((t, i) => `
-        <div class="leaderboard-row">
+      ${rows.map((t, i) => {
+        const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+        const crown = i === 0 ? `<span class="lb-crown">👑</span>` : '';
+        return `
+        <div class="leaderboard-row ${rankClass}">
+          ${crown}
           <div class="lb-rank">#${i + 1}</div>
           <div class="lb-name">${t.name}${trophyBadges(t.trophies)}</div>
           <div class="lb-record">${t.wins || 0}W · ${t.losses || 0}L</div>
           <div class="lb-elo">${t.elo || 1000}</div>
-        </div>`).join('')}
+        </div>`;
+      }).join('')}
     </div>`;
   }
   draw(games[0]);

@@ -26,7 +26,7 @@ function rosterPillHTML(p){
 }
 
 function participantCardHTML(t, i){
-  const g = gameClassP[t.game] || 'cs2';
+  const g = gameClassP[t.game] || 'custom';
   const label = gameLabelP[t.game] || t.game;
   const roster = normalizeRoster(t.roster);
   const initials = (t.teamName || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();

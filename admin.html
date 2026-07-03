@@ -171,6 +171,14 @@
             </select>
           </div>
           <div class="form-field">
+            <label for="newGameName">Новая дисциплина отсутствует в списке?</label>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <input id="newGameName" type="text" maxlength="30" placeholder="Например: Valorant" style="flex:1; min-width:180px;">
+              <button class="btn secondary" type="button" id="add-game-btn">+ Добавить игру</button>
+            </div>
+            <div class="tagline" style="margin:6px 0 0; font-size:12.5px;">Появится во всех списках игр на сайте (расписание, турниры, регистрация).</div>
+          </div>
+          <div class="form-field">
             <label for="tTeams">Команды (по одной на строке, минимум 2)</label>
             <textarea id="tTeams" name="tTeams" required placeholder="Team Aurora&#10;Nova Squad&#10;Iron Wolves&#10;Crimson Owls"></textarea>
           </div>
@@ -222,6 +230,19 @@
 
       <h2 style="margin-top:36px;">Опубликованные новости</h2>
       <div class="grid cols-3" id="news-admin-list"></div>
+    </section>
+
+    <section class="section container reveal" id="users-admin-section">
+      <span class="eyebrow">Модерация</span>
+      <h2>Аккаунты игроков</h2>
+      <p class="tagline">
+        Список тех, кто завёл профиль на сайте (страница «Аккаунт»). Здесь можно выдать статус
+        модератора (доступ в эту панель для добавления игр и расписания), а также забанить или
+        удалить профиль, если он нарушает <a href="register.html#rules" target="_blank" rel="noopener">правила сайта</a>.
+        Бан скрывает профиль и блокирует вход в личный кабинет — сам аккаунт входа (email) при этом
+        не удаляется, это ограничение Firebase Authentication без платного плана.
+      </p>
+      <div id="users-admin-list" class="grid cols-2"></div>
     </section>
 
   </div>

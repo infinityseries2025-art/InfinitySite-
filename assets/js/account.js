@@ -258,7 +258,7 @@ profileForm.addEventListener('submit', async (e) => {
   }
 });
 
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
   if(!user){
     authSection.style.display = 'block';
     cabinetSection.style.display = 'none';
@@ -271,6 +271,21 @@ auth.onAuthStateChanged((user) => {
   if(isAdmin){
     window.location.href = 'admin.html';
     return;
+  }
+
+  // Забаненный аккаунт: не показываем кабинет, сразу выходим из системы
+  try{
+    const snap = await db.collection('users').doc(user.uid).get();
+    if(snap.exists && snap.data().banned){
+      await auth.signOut();
+      authSection.style.display = 'block';
+      cabinetSection.style.display = 'none';
+      loginStatus.textContent = 'Этот аккаунт заблокирован организатором за нарушение правил сайта. Если считаешь это ошибкой — напиши в «Контакты».';
+      loginStatus.className = 'form-msg error';
+      return;
+    }
+  }catch(err){
+    console.warn('Не удалось проверить статус аккаунта', err);
   }
 
   authSection.style.display = 'none';

@@ -18,7 +18,7 @@ function getBasePath(){
 
 async function loadJSON(name){
   try{
-    const res = await fetch(DATA_PATH + name + '.json', { cache: 'force-cache' });
+    const res = await fetch(DATA_PATH + name + '.json', { cache: 'no-cache' });
     if(!res.ok) throw new Error('not ok');
     return await res.json();
   }catch(e){
@@ -46,6 +46,32 @@ function fmtDate(iso){
 
 const gameLabel = { CS2:'CS2', Dota2:'Dota 2', PUBG:'PUBG' };
 const gameClass = { CS2:'cs2', Dota2:'dota2', PUBG:'pubg' };
+
+/* ---------- список игр: базовые + добавленные организатором/модератором ----------
+   Хранится в Firestore, коллекция "settings", документ "games", поле "list".
+   Так организатор или модератор может добавить новую дисциплину прямо
+   из панели, без правки кода сайта. ---------- */
+const DEFAULT_GAMES = ['CS2', 'Dota2', 'PUBG'];
+async function loadGamesList(){
+  if(typeof db === 'undefined') return DEFAULT_GAMES.slice();
+  try{
+    const snap = await db.collection('settings').doc('games').get();
+    const custom = (snap.exists && Array.isArray(snap.data().list)) ? snap.data().list : [];
+    const extra = custom.filter(g => g && !DEFAULT_GAMES.includes(g));
+    return DEFAULT_GAMES.concat(extra);
+  }catch(e){
+    console.warn('Не удалось загрузить список игр', e);
+    return DEFAULT_GAMES.slice();
+  }
+}
+async function addCustomGame(name){
+  name = (name || '').trim();
+  if(!name || typeof db === 'undefined') return false;
+  await db.collection('settings').doc('games').set({
+    list: firebase.firestore.FieldValue.arrayUnion(name),
+  }, { merge: true });
+  return true;
+}
 const statusLabel = { upcoming:'Скоро', live:'Идёт сейчас', finished:'Завершён' };
 
 /* ---------- шапка сайта: лого + фон + активная ссылка ---------- */
@@ -150,7 +176,7 @@ function initScrollReveal(){
 
 /* ---------- рендер карточки матча ---------- */
 function matchCardHTML(m, i){
-  const g = gameClass[m.game] || 'cs2';
+  const g = gameClass[m.game] || 'custom';
   const label = gameLabel[m.game] || m.game;
   const sLabel = statusLabel[m.status] || m.status;
   return `
