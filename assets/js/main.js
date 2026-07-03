@@ -83,7 +83,7 @@ async function initChrome(config){
     if(logoOk){ el.innerHTML = `<img src="${logoUrl}" alt="Логотип турнира">`; }
   });
   document.querySelectorAll('[data-role="hero-mark"]').forEach(el => {
-    if(logoOk){ el.innerHTML = `<img src="${logoUrl}" alt="Логотип турнира">`; }
+    if(logoOk){ el.innerHTML = `<div class="hero-mark-inner"><img src="${logoUrl}" alt="Логотип турнира"></div>`; }
   });
   document.querySelectorAll('[data-role="site-name"]').forEach(el => {
     if(config?.siteName) el.textContent = config.siteName;
