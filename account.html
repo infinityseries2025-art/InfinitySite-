@@ -19,6 +19,7 @@
   #signup-form{ display:none; }
   .cabinet-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
   .btn.secondary{ background:var(--color-surface); color:var(--color-accent-deep); border:1px solid var(--color-primary-line); }
+  .btn.small{ padding:8px 16px; font-size:13px; }
 </style>
 </head>
 <body data-page="account">
@@ -97,7 +98,7 @@
   <section class="section container reveal" id="cabinet-section" style="display:none;">
     <span class="eyebrow">Личный кабинет</span>
     <h1>Добро пожаловать</h1>
-    <div class="card contact-card" style="max-width:420px;">
+    <div class="card contact-card" style="max-width:420px; margin-bottom:22px;">
       <div class="cabinet-row">
         <div>
           <div style="font-size:12px;color:var(--color-ink-soft);">Ты вошёл как</div>
@@ -105,6 +106,78 @@
         </div>
         <button class="btn secondary" id="logout-btn">Выйти</button>
       </div>
+    </div>
+
+    <div class="card contact-card" style="max-width:520px;">
+      <h3 style="margin-bottom:16px;">Профиль</h3>
+      <p class="tagline" style="margin-bottom:18px;">Ник и аватар видны другим — например, если тебя впишут в состав команды на регистрации, на странице «Участники» появится ссылка на этот профиль.</p>
+
+      <form id="profile-form">
+        <div class="form-field">
+          <label for="pNickname">Ник *</label>
+          <input id="pNickname" name="nickname" type="text" required maxlength="30" placeholder="Как тебя видят остальные">
+        </div>
+
+        <div class="form-field">
+          <label>Аватар</label>
+          <div class="avatar-upload" id="profile-avatar-upload">
+            <div class="avatar-preview" id="profile-avatar-preview">?</div>
+            <div class="avatar-controls">
+              <input type="file" id="pAvatarFile" accept="image/*">
+              <span class="avatar-hint">JPG/PNG/WEBP, автоматически сожмётся</span>
+              <button type="button" class="avatar-remove" id="profile-avatar-remove" style="display:none;">Убрать аватар</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="pDescription">О себе (необязательно)</label>
+          <textarea id="pDescription" name="description" maxlength="300" placeholder="Пара слов о себе, роль в игре и т.д."></textarea>
+        </div>
+
+        <div class="form-field">
+          <label>Соцсети (необязательно)</label>
+          <div class="social-fields">
+            <div class="form-field">
+              <label for="pTelegram">Telegram</label>
+              <input id="pTelegram" type="text" maxlength="120" placeholder="@nickname или ссылка">
+            </div>
+            <div class="form-field">
+              <label for="pDiscord">Discord</label>
+              <input id="pDiscord" type="text" maxlength="120" placeholder="username">
+            </div>
+            <div class="form-field">
+              <label for="pVk">VK</label>
+              <input id="pVk" type="text" maxlength="120" placeholder="ссылка на профиль">
+            </div>
+            <div class="form-field">
+              <label for="pTwitch">Twitch</label>
+              <input id="pTwitch" type="text" maxlength="120" placeholder="ссылка на канал">
+            </div>
+          </div>
+        </div>
+
+        <div id="profile-status" style="margin-bottom:14px; font-size:14px;"></div>
+        <button class="btn" id="profile-submit" type="submit">Сохранить профиль</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ПУБЛИЧНЫЙ ПРОФИЛЬ: открывается по ссылке account.html?u=UID
+       (например, из состава команды на странице «Участники»), доступен всем,
+       без входа в аккаунт. -->
+  <section class="section container reveal" id="profile-view-section" style="display:none;">
+    <span class="eyebrow">Профиль игрока</span>
+    <h1 id="pv-nickname">—</h1>
+    <div class="card contact-card" style="max-width:520px;">
+      <div class="profile-view-head">
+        <div class="profile-view-avatar" id="pv-avatar">?</div>
+      </div>
+      <p id="pv-description" style="color:var(--color-ink-soft); margin-top:14px;"></p>
+      <div class="profile-view-socials" id="pv-socials"></div>
+    </div>
+    <div style="margin-top:18px;">
+      <a href="account.html" class="btn secondary small">← В свой аккаунт</a>
     </div>
   </section>
 

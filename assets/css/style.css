@@ -630,6 +630,71 @@ p{ line-height:1.65; margin:0 0 1em; }
 .form-msg.success{ background:rgba(255,172,188,0.14); border:1px solid var(--color-primary-line); color:var(--color-text); }
 .form-msg.error{ background:rgba(255,92,108,0.14); border:1px solid rgba(255,92,108,0.4); color:#FFB4BC; }
 
+/* --- аватарки: загрузка (профиль игрока / команда) --- */
+.avatar-upload{ display:flex; align-items:center; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+.avatar-upload .avatar-preview{
+  width:84px; height:84px; border-radius:50%; flex:none;
+  background:linear-gradient(160deg,var(--color-primary),var(--color-accent-deep));
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; color:#1C1D21; font-weight:800; font-size:22px;
+}
+.avatar-upload.square .avatar-preview{ border-radius:16px; }
+.avatar-upload .avatar-preview img{ width:100%; height:100%; object-fit:cover; }
+.avatar-upload .avatar-controls{ display:flex; flex-direction:column; gap:6px; }
+.avatar-upload input[type="file"]{ font-size:12.5px; color:var(--color-ink-soft); max-width:220px; }
+.avatar-upload .avatar-hint{ font-size:12px; color:var(--color-ink-soft); }
+.avatar-remove{
+  align-self:flex-start; background:none; border:none; color:var(--color-accent);
+  font-size:12.5px; font-weight:700; cursor:pointer; padding:0; text-decoration:underline;
+}
+
+/* --- соцсети профиля: пара строк "платформа + ссылка" --- */
+.social-fields{ display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+@media (max-width:480px){ .social-fields{ grid-template-columns:1fr; } }
+
+/* --- состав команды: динамические строки с привязкой аккаунта --- */
+.roster-row{ display:flex; gap:8px; align-items:flex-start; margin-bottom:10px; }
+.roster-row .form-field{ flex:1; margin-bottom:0; }
+.roster-row .roster-remove{
+  flex:none; width:42px; height:42px; border-radius:10px; border:1px solid var(--color-primary-line);
+  background:var(--color-surface-alt); color:var(--color-ink-soft); font-size:16px; cursor:pointer;
+  transition:all .2s ease;
+}
+.roster-row .roster-remove:hover{ border-color:#FF5C6C; color:#FF5C6C; }
+.roster-add{
+  background:none; border:1px dashed var(--color-primary-line); border-radius:10px;
+  padding:10px 14px; color:var(--color-accent); font-weight:700; font-size:13px;
+  cursor:pointer; width:100%; margin-bottom:14px; transition:all .2s ease;
+}
+.roster-add:hover{ border-color:var(--color-accent); background:var(--color-primary-soft); }
+.roster-hint{ font-size:12px; color:var(--color-ink-soft); margin:-4px 0 14px; }
+
+/* --- кликабельный ник в составе команды (если привязан аккаунт) --- */
+.roster-pill{
+  background:var(--color-primary-soft); border:1px solid var(--color-primary-line); border-radius:999px;
+  padding:4px 10px; font-size:12px; display:inline-flex; align-items:center; gap:5px;
+}
+a.roster-pill{ color:var(--color-text); text-decoration:none; transition:all .2s ease; cursor:pointer; }
+a.roster-pill:hover{ background:var(--color-accent); color:#1C1D21; border-color:var(--color-accent); transform:translateY(-2px); }
+.roster-pill .link-dot{ width:6px; height:6px; border-radius:50%; background:var(--color-accent); flex:none; }
+a.roster-pill:hover .link-dot{ background:#1C1D21; }
+
+/* --- публичный профиль игрока (account.html?u=...) --- */
+.profile-view-head{ display:flex; align-items:center; gap:18px; margin-bottom:6px; flex-wrap:wrap; }
+.profile-view-avatar{
+  width:88px; height:88px; border-radius:50%; flex:none; overflow:hidden;
+  background:linear-gradient(160deg,var(--color-primary),var(--color-accent-deep));
+  display:flex; align-items:center; justify-content:center; color:#1C1D21; font-weight:800; font-size:26px;
+}
+.profile-view-avatar img{ width:100%; height:100%; object-fit:cover; }
+.profile-view-socials{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+.profile-view-socials a{
+  padding:8px 14px; border-radius:999px; background:var(--color-primary-soft);
+  border:1px solid var(--color-primary-line); color:var(--color-text); font-size:13px; font-weight:600;
+  text-decoration:none; transition:all .2s ease;
+}
+.profile-view-socials a:hover{ background:var(--color-accent); color:#1C1D21; border-color:var(--color-accent); }
+
 .btn{
   position:relative;
   overflow:hidden;

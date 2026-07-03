@@ -97,6 +97,38 @@ async function initChrome(config){
   }
 }
 
+/* ---------- аватарки: превращаем выбранный файл в компактный dataURL
+   и храним прямо в документе Firestore (без Firebase Storage —
+   сайт специально обходится без платных/дополнительных сервисов).
+   maxDim — сторона, до которой уменьшаем картинку, quality — качество JPEG. ---------- */
+function fileToCompressedDataURL(file, maxDim = 320, quality = 0.82){
+  return new Promise((resolve, reject) => {
+    if(!file) { resolve(''); return; }
+    if(!file.type || !file.type.startsWith('image/')){
+      reject(new Error('Выбери файл-картинку (JPG, PNG, WEBP).'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Не удалось прочитать файл.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Не удалось открыть картинку.'));
+      img.onload = () => {
+        let { width, height } = img;
+        if(width > height && width > maxDim){ height = Math.round(height * (maxDim / width)); width = maxDim; }
+        else if(height > maxDim){ width = Math.round(width * (maxDim / height)); height = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 /* ---------- rendere: плавное появление секций при скролле ---------- */
 function initScrollReveal(){
   const els = document.querySelectorAll('.reveal');

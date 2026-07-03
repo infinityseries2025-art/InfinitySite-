@@ -77,18 +77,34 @@ logoutBtn.addEventListener('click', () => auth.signOut());
 
 const statusLabels = { pending:'На модерации', approved:'Одобрена', rejected:'Отклонена' };
 
+// Состав хранится как массив {nickname, uid}. У заявок, отправленных
+// до этого обновления, роcтер мог остаться строкой — поддерживаем оба формата.
+function rosterToText(roster){
+  if(Array.isArray(roster)){
+    return roster.map(p => (p && p.nickname ? p.nickname + (p.uid ? ' 🔗' : '') : '')).filter(Boolean).join(', ');
+  }
+  if(typeof roster === 'string') return roster.replace(/\n/g, ', ');
+  return '';
+}
+
 function appCardHTML(doc){
   const d = doc.data();
   const id = doc.id;
-  const roster = (d.roster || '').replace(/\n/g, ', ');
+  const roster = rosterToText(d.roster);
+  const initials = (d.teamName || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   return `
   <div class="card app-card" data-id="${id}">
     <div class="app-top">
-      <strong>${d.teamName || '—'}</strong>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="team-avatar" style="width:36px; height:36px; margin:0; flex:none; font-size:13px;">
+          ${d.teamAvatar ? `<img src="${d.teamAvatar}" alt="${d.teamName}">` : initials}
+        </div>
+        <strong>${d.teamName || '—'}</strong>
+      </div>
       <span class="app-status-badge ${d.status}">${statusLabels[d.status] || d.status}</span>
     </div>
     <div style="font-size:13px; color:var(--color-ink-soft);">
-      Игра: ${d.game || '—'} · Капитан: ${d.captainName || '—'}<br>
+      Игра: ${d.game || '—'} · Капитан: ${d.captainName || '—'}${d.captainUid ? ' 🔗' : ''}<br>
       Контакт: ${d.contact || '—'}<br>
       Состав: ${roster || '—'}
       ${d.note ? `<br>Комментарий: ${d.note}` : ''}

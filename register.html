@@ -43,6 +43,18 @@
     <div class="card contact-card" style="max-width:640px; margin-top:20px;">
       <form id="register-form">
         <div class="form-field">
+          <label>Аватар команды (необязательно)</label>
+          <div class="avatar-upload square" id="team-avatar-upload">
+            <div class="avatar-preview" id="team-avatar-preview">?</div>
+            <div class="avatar-controls">
+              <input type="file" id="teamAvatarFile" accept="image/*">
+              <span class="avatar-hint">JPG/PNG/WEBP, автоматически сожмётся</span>
+              <button type="button" class="avatar-remove" id="team-avatar-remove" style="display:none;">Убрать аватар</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-field">
           <label for="teamName">Название команды *</label>
           <input id="teamName" name="teamName" type="text" required maxlength="60">
         </div>
@@ -55,17 +67,22 @@
           </select>
         </div>
         <div class="form-field">
-          <label for="captainName">Имя капитана *</label>
-          <input id="captainName" name="captainName" type="text" required maxlength="60">
+          <label for="captainName">Ник капитана *</label>
+          <input id="captainName" name="captainName" type="text" required maxlength="60" list="known-nicknames" autocomplete="off">
         </div>
         <div class="form-field">
           <label for="contact">Контакт для связи (Telegram/почта/телефон) *</label>
           <input id="contact" name="contact" type="text" required maxlength="120">
         </div>
+
         <div class="form-field">
-          <label for="roster">Состав команды * (по одному игроку на строке или через запятую)</label>
-          <textarea id="roster" name="roster" required placeholder="Nickname1&#10;Nickname2&#10;Nickname3"></textarea>
+          <label>Состав команды *</label>
+          <div class="roster-hint">Впиши ник каждого игрока. Если ник совпадает с зарегистрированным на сайте аккаунтом — он подставится из подсказки, и в заявке появится ссылка на его профиль.</div>
+          <div id="roster-rows"></div>
+          <button type="button" class="roster-add" id="roster-add">+ Добавить игрока</button>
+          <datalist id="known-nicknames"></datalist>
         </div>
+
         <div class="form-field">
           <label for="note">Комментарий (необязательно)</label>
           <textarea id="note" name="note" placeholder="Опыт участия в турнирах, пожелания и т.д."></textarea>
