@@ -188,6 +188,26 @@
 
       <h2 style="margin-top:36px;">Активные и завершённые турниры</h2>
       <div id="tournaments-admin-list"></div>
+
+      <h2 style="margin-top:36px;">Рейтинг команд (Эло)</h2>
+      <p class="tagline">
+        Здесь видны все команды, которым хоть раз начислялся Эло. Если из-за опечатки или
+        тестового турнира в списке оказалась лишняя/неверная команда (например «Команда 1»,
+        «Команда 2») — поправь рейтинг вручную или удали её карточку насовсем.
+      </p>
+      <div id="teams-admin-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;"></div>
+      <table class="admin-table" id="teams-admin-table">
+        <thead>
+          <tr>
+            <th>Команда</th>
+            <th>Эло</th>
+            <th>W</th>
+            <th>L</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="teams-admin-rows"></tbody>
+      </table>
     </section>
 
     <section class="section container reveal">

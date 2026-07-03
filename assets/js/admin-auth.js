@@ -103,11 +103,16 @@ logoutBtn.addEventListener('click', () => auth.signOut());
 
 const statusLabels = { pending:'На модерации', approved:'Одобрена', rejected:'Отклонена' };
 
-// Состав хранится как массив {nickname, uid}. У заявок, отправленных
+// Состав хранится как массив {nickname, uid, elo}. У заявок, отправленных
 // до этого обновления, роcтер мог остаться строкой — поддерживаем оба формата.
 function rosterToText(roster){
   if(Array.isArray(roster)){
-    return roster.map(p => (p && p.nickname ? p.nickname + (p.uid ? ' 🔗' : '') : '')).filter(Boolean).join(', ');
+    return roster.map(p => {
+      if(!p || !p.nickname) return '';
+      const linkMark = p.uid ? ' 🔗' : '';
+      const eloMark = p.elo ? ` (эло ${p.elo})` : '';
+      return p.nickname + linkMark + eloMark;
+    }).filter(Boolean).join(', ');
   }
   if(typeof roster === 'string') return roster.replace(/\n/g, ', ');
   return '';
@@ -132,6 +137,7 @@ function appCardHTML(doc){
     <div style="font-size:13px; color:var(--color-ink-soft);">
       Игра: ${d.game || '—'} · Капитан: ${d.captainName || '—'}${d.captainUid ? ' 🔗' : ''}<br>
       Контакт: ${d.contact || '—'}<br>
+      ${d.avgElo ? `Средний эло состава: <strong>${d.avgElo}</strong><br>` : ''}
       Состав: ${roster || '—'}
       ${d.note ? `<br>Комментарий: ${d.note}` : ''}
     </div>

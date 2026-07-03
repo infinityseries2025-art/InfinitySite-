@@ -25,7 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
         существующего аккаунта, и прикрепить к заявке его uid
         (в "Участниках" тогда появится ссылка на профиль).
   ----------------------------------------------------- */
-  const nicknameToUid = new Map(); // ключ — ник в нижнем регистре
+  const nicknameToUid = new Map(); // ключ — ник в нижнем регистре → uid
+  const nicknameToElo = new Map(); // ключ — ник в нижнем регистре → эло на Faceit из профиля
   const nicknameDatalist = document.getElementById('known-nicknames');
   const gameSelect = document.getElementById('game');
 
@@ -48,10 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const nick = (doc.data().nickname || '').trim();
         if(!nick) return;
         nicknameToUid.set(nick.toLowerCase(), doc.id);
+        if(doc.data().faceitElo) nicknameToElo.set(nick.toLowerCase(), doc.data().faceitElo);
         options.push(nick);
       });
       if(nicknameDatalist){
         nicknameDatalist.innerHTML = options.map(n => `<option value="${n}">`).join('');
+      }
+      if(typeof rosterRows !== 'undefined' && rosterRows){
+        rosterRows.querySelectorAll('.roster-row').forEach(row => syncRosterEloFromProfile(row));
       }
     }catch(err){
       console.warn('Не удалось загрузить список ников для подсказки:', err);
@@ -62,6 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const trimmed = (nick || '').trim();
     if(!trimmed) return null;
     return nicknameToUid.get(trimmed.toLowerCase()) || null;
+  }
+
+  function findEloByNickname(nick){
+    const trimmed = (nick || '').trim();
+    if(!trimmed) return null;
+    return nicknameToElo.get(trimmed.toLowerCase()) || null;
   }
 
   /* -----------------------------------------------------
@@ -111,9 +122,46 @@ document.addEventListener('DOMContentLoaded', () => {
   ----------------------------------------------------- */
   const rosterRows = document.getElementById('roster-rows');
   const rosterAddBtn = document.getElementById('roster-add');
+  const rosterAvgEloBox = document.getElementById('roster-avg-elo');
   let rosterCounter = 0;
 
-  function addRosterRow(value = ''){
+  function updateRosterAvgElo(){
+    const values = Array.from(rosterRows.querySelectorAll('.roster-row')).map(row => {
+      const nick = row.querySelector('.roster-nick').value.trim();
+      const elo = Number(row.querySelector('.roster-elo').value);
+      return nick && Number.isFinite(elo) && elo > 0 ? elo : null;
+    }).filter(v => v !== null);
+    if(!rosterAvgEloBox) return;
+    if(!values.length){
+      rosterAvgEloBox.textContent = '';
+      return;
+    }
+    const avg = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+    rosterAvgEloBox.textContent = `Средний эло состава: ${avg} (по ${values.length} игрок${values.length === 1 ? 'у' : values.length < 5 ? 'ам' : 'ам'})`;
+  }
+
+  // Если ник совпадает с зарегистрированным аккаунтом, у которого в профиле
+  // указано эло — подставляем его и блокируем поле (эло берётся из профиля,
+  // а не вписывается вручную). Если совпадения нет — поле открыто для ручного ввода.
+  function syncRosterEloFromProfile(row){
+    const nickInput = row.querySelector('.roster-nick');
+    const eloInput = row.querySelector('.roster-elo');
+    const eloHint = row.querySelector('.roster-elo-hint');
+    const knownElo = findEloByNickname(nickInput.value);
+    if(knownElo){
+      eloInput.value = knownElo;
+      eloInput.readOnly = true;
+      eloInput.classList.add('roster-elo-locked');
+      if(eloHint) eloHint.textContent = 'эло из профиля';
+    }else{
+      eloInput.readOnly = false;
+      eloInput.classList.remove('roster-elo-locked');
+      if(eloHint) eloHint.textContent = '';
+    }
+    updateRosterAvgElo();
+  }
+
+  function addRosterRow(value = '', eloValue = ''){
     rosterCounter += 1;
     const row = document.createElement('div');
     row.className = 'roster-row';
@@ -122,13 +170,21 @@ document.addEventListener('DOMContentLoaded', () => {
         <input type="text" class="roster-nick" list="known-nicknames" autocomplete="off"
                maxlength="40" placeholder="Ник игрока ${rosterCounter}" value="${value}">
       </div>
+      <div class="form-field" style="max-width:140px;">
+        <input type="number" class="roster-elo" min="1" max="10000" step="1"
+               placeholder="Эло Faceit" value="${eloValue}">
+        <span class="roster-elo-hint" style="font-size:11px; color:var(--color-ink-soft);"></span>
+      </div>
       <button type="button" class="roster-remove" title="Удалить игрока">✕</button>
     `;
     row.querySelector('.roster-remove').addEventListener('click', () => {
       // не даём удалить последнюю оставшуюся строку — состав не может быть пустым
-      if(rosterRows.children.length > 1) row.remove();
+      if(rosterRows.children.length > 1){ row.remove(); updateRosterAvgElo(); }
     });
+    row.querySelector('.roster-nick').addEventListener('input', () => syncRosterEloFromProfile(row));
+    row.querySelector('.roster-elo').addEventListener('input', updateRosterAvgElo);
     rosterRows.appendChild(row);
+    syncRosterEloFromProfile(row);
   }
 
   // стартовый состав — сразу 3 пустые строки, дальше можно добавлять/убирать
@@ -136,10 +192,13 @@ document.addEventListener('DOMContentLoaded', () => {
   rosterAddBtn.addEventListener('click', () => addRosterRow());
 
   function collectRoster(){
-    return Array.from(rosterRows.querySelectorAll('.roster-nick'))
-      .map(input => input.value.trim())
-      .filter(Boolean)
-      .map(nick => ({ nickname: nick, uid: findUidByNickname(nick) }));
+    return Array.from(rosterRows.querySelectorAll('.roster-row'))
+      .map(row => ({
+        nickname: row.querySelector('.roster-nick').value.trim(),
+        elo: Number(row.querySelector('.roster-elo').value) || null,
+      }))
+      .filter(p => p.nickname)
+      .map(p => ({ nickname: p.nickname, uid: findUidByNickname(p.nickname), elo: p.elo }));
   }
 
   const pageLoadedAt = Date.now();
@@ -203,6 +262,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const roster = collectRoster();
     const captainName = form.captainName.value.trim();
 
+    if(roster.some(p => !p.elo || p.elo < 1)){
+      statusBox.textContent = 'Укажи эло на Faceit для каждого игрока состава (или впиши ник его существующего аккаунта — эло подставится само).';
+      statusBox.className = 'form-msg error';
+      return;
+    }
+
+    const avgElo = roster.length
+      ? Math.round(roster.reduce((sum, p) => sum + (p.elo || 0), 0) / roster.length)
+      : null;
+
     const data = {
       teamName: form.teamName.value.trim(),
       teamAvatar: teamAvatarDataURL,
@@ -211,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
       captainUid: findUidByNickname(captainName),
       contact: form.contact.value.trim(),
       roster,
+      avgElo,
       note: form.note.value.trim(),
       agreedRules: true,
       status: 'pending',
@@ -235,7 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
       rosterRows.innerHTML = '';
       rosterCounter = 0;
       addRosterRow(); addRosterRow(); addRosterRow();
-      statusBox.textContent = 'Заявка отправлена! Она появится на сайте после проверки организатором.';
+      statusBox.textContent = avgElo
+        ? `Заявка отправлена! Средний эло состава: ${avgElo}. Заявка появится на сайте после проверки организатором.`
+        : 'Заявка отправлена! Она появится на сайте после проверки организатором.';
       statusBox.className = 'form-msg success';
     }catch(err){
       console.error(err);

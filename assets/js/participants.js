@@ -20,9 +20,11 @@ function normalizeRoster(roster){
 function rosterPillHTML(p){
   const nickname = (p.nickname || '').trim() || '—';
   const dot = p.uid ? `<span class="link-dot"></span>` : '';
+  const eloSuffix = p.elo ? ` · ${p.elo}` : '';
+  const title = p.elo ? `Эло Faceit: ${p.elo}` : '';
   return p.uid
-    ? `<a class="roster-pill" href="account.html?u=${p.uid}" title="Открыть профиль ${nickname}">${dot}${nickname}</a>`
-    : `<span class="roster-pill">${nickname}</span>`;
+    ? `<a class="roster-pill" href="account.html?u=${p.uid}" title="${title || `Открыть профиль ${nickname}`}">${dot}${nickname}${eloSuffix}</a>`
+    : `<span class="roster-pill" title="${title}">${nickname}${eloSuffix}</span>`;
 }
 
 function participantCardHTML(t, i){
@@ -44,7 +46,8 @@ function participantCardHTML(t, i){
         <span class="game-tag ${g}">${label}</span>
       </div>
     </div>
-    <div class="role" style="margin-bottom:10px;">${captainLine}</div>
+    <div class="role" style="margin-bottom:6px;">${captainLine}</div>
+    ${t.avgElo ? `<div class="role" style="margin-bottom:10px;">Средний эло состава: <strong>${t.avgElo}</strong></div>` : ''}
     ${roster.length ? `<ul style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; list-style:none; padding:0;">
       ${roster.map(p => `<li>${rosterPillHTML(p)}</li>`).join('')}
     </ul>` : ''}

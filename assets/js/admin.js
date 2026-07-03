@@ -305,10 +305,16 @@ if(tournamentsWrap){
 
     const finishBtn = e.target.closest('.finish-tournament');
     if(finishBtn){
+      if(finishBtn.disabled) return; // защита от повторного клика (двойное начисление Эло)
       const tid = finishBtn.getAttribute('data-tid');
       const t = tournamentsCache.find(x => x.id === tid);
       if(!t) return;
-      await finishTournament(t);
+      finishBtn.disabled = true;
+      try{
+        await finishTournament(t);
+      }finally{
+        finishBtn.disabled = false; // если сработал catch внутри и турнир не завершился
+      }
       return;
     }
 
@@ -329,49 +335,170 @@ if(tournamentsWrap){
   });
 }
 
-/* Начисляет Эло за каждый сыгранный матч турнира и выдаёт титул
-   победителю, например «Обладатели трофея IST Season 1». */
+/* Начисляет Эло за все сыгранные матчи турнира и выдаёт титул
+   победителю, например «Обладатели трофея IST Season 1».
+
+   Важно: каждый матч считается от рейтинга, который был у команды
+   ДО начала турнира, а не от рейтинга, уже изменённого её же
+   предыдущей игрой в этой же сетке. Иначе итог зависит от порядка
+   матчей (кто раньше сыграл в сетке) — команда получает "перекос"
+   Эло от собственных промежуточных побед/поражений внутри одного
+   турнира, что и выглядело как "странный, несправедливый" рейтинг.
+   Все изменения по турниру считаются от одной и той же стартовой
+   точки и применяются одним разом — результат воспроизводим и не
+   зависит от очерёдности матчей в сетке. */
 async function finishTournament(t){
   const winnerName = tournamentWinner(t.rounds);
   if(!winnerName) return;
   if(!confirm(`Завершить турнир «${t.name}»?\nПобедитель: ${winnerName}.\nВсем участникам будет пересчитан рейтинг Эло, а победителю выдан титул.`)) return;
 
   const matches = playedMatches(t.rounds);
-  try{
-    for(const m of matches){
-      const winnerIsA = m.winner === m.teamA;
-      const wName = winnerIsA ? m.teamA : m.teamB;
-      const lName = winnerIsA ? m.teamB : m.teamA;
-      const wRef = db.collection('teams').doc(slugTeam(t.game, wName));
-      const lRef = db.collection('teams').doc(slugTeam(t.game, lName));
-      await db.runTransaction(async (tx) => {
-        const [wSnap, lSnap] = await Promise.all([tx.get(wRef), tx.get(lRef)]);
-        const wElo = wSnap.exists && wSnap.data().elo ? wSnap.data().elo : 1000;
-        const lElo = lSnap.exists && lSnap.data().elo ? lSnap.data().elo : 1000;
-        const { newWinner, newLoser } = eloUpdate(wElo, lElo);
-        tx.set(wRef, {
-          name: wName, game: t.game, elo: newWinner,
-          wins: firebase.firestore.FieldValue.increment(1),
-        }, { merge: true });
-        tx.set(lRef, {
-          name: lName, game: t.game, elo: newLoser,
-          losses: firebase.firestore.FieldValue.increment(1),
-        }, { merge: true });
-      });
-    }
+  // Все команды, которых касается этот турнир: реально сыгравшие матчи,
+  // плюс сам победитель (на случай, если он прошёл в финал только
+  // за счёт BYE и ни разу не встретился с реальным соперником — титул
+  // всё равно должен быть выдан).
+  const names = [...new Set([...matches.flatMap(m => [m.teamA, m.teamB]), winnerName])];
 
-    const champRef = db.collection('teams').doc(slugTeam(t.game, winnerName));
-    await champRef.set({
-      name: winnerName,
-      game: t.game,
-      trophies: firebase.firestore.FieldValue.arrayUnion(`${TROPHY_PREFIX} ${t.name}`),
-    }, { merge: true });
+  try{
+    await db.runTransaction(async (tx) => {
+      const refs = {}, baseline = {}, delta = {}, wins = {}, losses = {};
+      for(const name of names){
+        const ref = db.collection('teams').doc(slugTeam(t.game, name));
+        const snap = await tx.get(ref);
+        refs[name] = ref;
+        baseline[name] = snap.exists && typeof snap.data().elo === 'number' ? snap.data().elo : 1000;
+        delta[name] = 0; wins[name] = 0; losses[name] = 0;
+      }
+
+      matches.forEach(m => {
+        const winnerIsA = m.winner === m.teamA;
+        const wName = winnerIsA ? m.teamA : m.teamB;
+        const lName = winnerIsA ? m.teamB : m.teamA;
+        // Считаем от стартового (до турнира) Эло обеих команд —
+        // не от уже изменённого их собственными матчами внутри сетки.
+        const { newWinner, newLoser } = eloUpdate(baseline[wName], baseline[lName]);
+        delta[wName] += newWinner - baseline[wName];
+        delta[lName] += newLoser - baseline[lName];
+        wins[wName] += 1;
+        losses[lName] += 1;
+      });
+
+      names.forEach(name => {
+        const payload = {
+          name, game: t.game,
+          elo: Math.round(baseline[name] + delta[name]),
+          wins: firebase.firestore.FieldValue.increment(wins[name]),
+          losses: firebase.firestore.FieldValue.increment(losses[name]),
+        };
+        if(name === winnerName){
+          payload.trophies = firebase.firestore.FieldValue.arrayUnion(`${TROPHY_PREFIX} ${t.name}`);
+        }
+        tx.set(refs[name], payload, { merge: true });
+      });
+    });
 
     await db.collection('tournaments').doc(t.id).update({ status: 'finished', winner: winnerName });
   }catch(err){
     console.error(err);
     alert('Не удалось завершить турнир — попробуй ещё раз.');
   }
+}
+
+/* ---------------------- РЕЙТИНГ КОМАНД (ЭЛО) ---------------------- */
+const teamsTabsWrap = document.getElementById('teams-admin-tabs');
+const teamsRowsBody = document.getElementById('teams-admin-rows');
+let teamsUnsub = null;
+let teamsCache = [];
+let teamsActiveGame = null;
+
+function teamRowHTML(team){
+  return `
+    <tr data-id="${team.id}">
+      <td>${team.name || team.id}</td>
+      <td><input class="t-elo" type="number" step="1" value="${typeof team.elo === 'number' ? team.elo : 1000}" style="width:90px;"></td>
+      <td>${team.wins || 0}</td>
+      <td>${team.losses || 0}</td>
+      <td style="white-space:nowrap;">
+        <button type="button" class="btn secondary team-save" data-id="${team.id}">Сохранить</button>
+        <button type="button" class="btn secondary team-delete" data-id="${team.id}">Удалить</button>
+      </td>
+    </tr>`;
+}
+
+function drawTeamsTable(){
+  if(!teamsRowsBody) return;
+  const games = [...new Set(teamsCache.map(x => x.game).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  if(!games.length){
+    if(teamsTabsWrap) teamsTabsWrap.innerHTML = '';
+    teamsRowsBody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Рейтинг пока пуст.</div></td></tr>`;
+    return;
+  }
+  if(!teamsActiveGame || !games.includes(teamsActiveGame)) teamsActiveGame = games[0];
+  if(teamsTabsWrap){
+    teamsTabsWrap.innerHTML = games.map(g =>
+      `<button type="button" class="btn ${g === teamsActiveGame ? '' : 'secondary'} teams-tab" data-game="${g}">${g}</button>`
+    ).join('');
+  }
+  const rows = teamsCache.filter(x => x.game === teamsActiveGame).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+  teamsRowsBody.innerHTML = rows.length
+    ? rows.map(teamRowHTML).join('')
+    : `<tr><td colspan="5"><div class="empty-state">Для этой игры пока нет команд с рейтингом.</div></td></tr>`;
+}
+
+function startTeamsListener(){
+  if(teamsUnsub || !teamsRowsBody) return;
+  teamsUnsub = db.collection('teams').onSnapshot((snap) => {
+    teamsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    drawTeamsTable();
+  }, (err) => console.error(err));
+}
+function stopTeamsListener(){
+  if(teamsUnsub){ teamsUnsub(); teamsUnsub = null; }
+}
+
+if(teamsTabsWrap){
+  teamsTabsWrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('.teams-tab');
+    if(!btn) return;
+    teamsActiveGame = btn.getAttribute('data-game');
+    drawTeamsTable();
+  });
+}
+
+if(teamsRowsBody){
+  teamsRowsBody.addEventListener('click', async (e) => {
+    const saveBtn = e.target.closest('.team-save');
+    if(saveBtn){
+      const id = saveBtn.getAttribute('data-id');
+      const tr = saveBtn.closest('tr');
+      const val = Number(tr.querySelector('.t-elo').value);
+      if(!Number.isFinite(val)){ alert('Эло должно быть числом.'); return; }
+      saveBtn.disabled = true;
+      try{
+        await db.collection('teams').doc(id).update({ elo: Math.round(val) });
+      }catch(err){
+        console.error(err);
+        alert('Не удалось сохранить рейтинг.');
+      }finally{
+        saveBtn.disabled = false;
+      }
+      return;
+    }
+    const delBtn = e.target.closest('.team-delete');
+    if(delBtn){
+      const id = delBtn.getAttribute('data-id');
+      const team = teamsCache.find(x => x.id === id);
+      if(!confirm(`Удалить команду «${team ? team.name : id}» из рейтинга насовсем?\nЭто не отменит результаты уже сыгранных турниров — уберётся только карточка рейтинга.`)) return;
+      delBtn.disabled = true;
+      try{
+        await db.collection('teams').doc(id).delete();
+      }catch(err){
+        console.error(err);
+        alert('Не удалось удалить команду.');
+        delBtn.disabled = false;
+      }
+    }
+  });
 }
 
 /* ---------------------- НОВОСТИ ---------------------- */

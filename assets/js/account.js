@@ -38,6 +38,8 @@ if(viewedUid){
         ? `<img src="${p.avatar}" alt="${nickname}">`
         : nickname.slice(0, 2).toUpperCase();
       descEl.textContent = p.description || '';
+      const eloEl = document.getElementById('pv-elo');
+      if(eloEl) eloEl.textContent = p.faceitElo ? `Эло на Faceit: ${p.faceitElo}` : '';
       const socials = p.socials || {};
       const socialLinks = [];
       if(socials.telegram) socialLinks.push({ label: 'Telegram', href: socials.telegram.startsWith('http') ? socials.telegram : `https://t.me/${socials.telegram.replace(/^@/, '')}` });
@@ -157,6 +159,7 @@ const profileStatus = document.getElementById('profile-status');
 const profileSubmit = document.getElementById('profile-submit');
 const pNickname = document.getElementById('pNickname');
 const pDescription = document.getElementById('pDescription');
+const pFaceitElo = document.getElementById('pFaceitElo');
 const pTelegram = document.getElementById('pTelegram');
 const pDiscord = document.getElementById('pDiscord');
 const pVk = document.getElementById('pVk');
@@ -205,6 +208,7 @@ async function loadProfile(uid){
     const p = snap.exists ? snap.data() : {};
     pNickname.value = p.nickname || '';
     pDescription.value = p.description || '';
+    pFaceitElo.value = p.faceitElo || '';
     const socials = p.socials || {};
     pTelegram.value = socials.telegram || '';
     pDiscord.value = socials.discord || '';
@@ -231,6 +235,13 @@ profileForm.addEventListener('submit', async (e) => {
     return;
   }
 
+  const faceitEloValue = Number(pFaceitElo.value);
+  if(!pFaceitElo.value || !Number.isFinite(faceitEloValue) || faceitEloValue < 1 || faceitEloValue > 10000){
+    profileStatus.textContent = 'Укажи своё текущее эло на Faceit (число от 1 до 10000) — это обязательное поле.';
+    profileStatus.className = 'form-msg error';
+    return;
+  }
+
   profileSubmit.disabled = true;
   profileSubmit.textContent = 'Сохраняем…';
   try{
@@ -238,6 +249,7 @@ profileForm.addEventListener('submit', async (e) => {
       nickname,
       avatar: currentAvatarDataURL,
       description: pDescription.value.trim(),
+      faceitElo: Math.round(faceitEloValue),
       socials: {
         telegram: pTelegram.value.trim(),
         discord: pDiscord.value.trim(),

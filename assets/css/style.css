@@ -682,6 +682,8 @@ p{ line-height:1.65; margin:0 0 1em; }
 }
 .roster-add:hover{ border-color:var(--color-accent); background:var(--color-primary-soft); }
 .roster-hint{ font-size:12px; color:var(--color-ink-soft); margin:-4px 0 14px; }
+.roster-elo-locked{ background:var(--color-primary-soft); color:var(--color-accent-deep); font-weight:700; cursor:not-allowed; }
+#roster-avg-elo{ color:var(--color-accent-deep); font-size:14px; }
 
 /* --- кликабельный ник в составе команды (если привязан аккаунт) --- */
 .roster-pill{

@@ -4,55 +4,42 @@
     "name": "Exomi",
     "role": "Организатор турнира",
     "photo": "",
-    "socials": {
-      "telegram": "https://t.me/jelly9design",
-      "faceit": "https://www.faceit.com/ru/players/3XOMIMI"
-    }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/3XOMIMI"}
   },
   {
     "id": 2,
     "name": "Hez1",
     "role": "Капитан команды организаторов",
     "photo": "",
-    "socials": {
-      "faceit": "https://www.faceit.com/ru/players/Felexxx1715"
-    }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/Felexxx1715"}
   },
   {
     "id": 3,
     "name": "dizerix52",
     "role": "Снайпер команды организаторов",
     "photo": "",
-    "socials": {
-      "faceit": "https://www.faceit.com/ru/players/dizerix52"
-    }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/dizerix52"}
   },
   {
     "id": 4,
     "name": "cheliks52",
     "role": "Рифлер команды организаторов",
     "photo": "",
-    "socials": {
-      "faceit": "https://www.faceit.com/ru/players/Cheliks52"
-    }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/Cheliks52"}
   },
+
   {
     "id": 4,
     "name": "Se1ng",
     "role": "Опорник команды организаторов",
     "photo": "",
-    "socials": {
-      "faceit": "https://www.faceit.com/ru/players/SE1NGG"
-    }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/SE1NGG"}
   },
   {
     "id": 5,
     "name": "Koariy",
     "role": "Организатор турнира",
     "photo": "",
-    "socials": {
-      "faceit": "https://www.faceit.com/ru/players/v14er",
-      "twitch": "https://twitch.tv/koariy"
-    }
+    "socials": { "twitch": "https://twitch.tv/koariy" }
   }
 ]

@@ -136,6 +136,15 @@
         </div>
 
         <div class="form-field">
+          <label for="pFaceitElo">Эло на Faceit *</label>
+          <input id="pFaceitElo" name="faceitElo" type="number" min="1" max="10000" step="1" required placeholder="Например: 1450">
+          <div class="tagline" style="margin-top:6px; font-size:12.5px;">
+            Указывай реальное текущее эло со своего профиля Faceit — при регистрации команды оно подставится
+            автоматически и попадёт в средний рейтинг состава. Неверные данные проверяются организаторами.
+          </div>
+        </div>
+
+        <div class="form-field">
           <label>Соцсети (необязательно)</label>
           <div class="social-fields">
             <div class="form-field">
@@ -174,6 +183,7 @@
         <div class="profile-view-avatar" id="pv-avatar">?</div>
       </div>
       <p id="pv-description" style="color:var(--color-ink-soft); margin-top:14px;"></p>
+      <div id="pv-elo" style="margin-top:8px; font-weight:700;"></div>
       <div class="profile-view-socials" id="pv-socials"></div>
     </div>
     <div style="margin-top:18px;">
