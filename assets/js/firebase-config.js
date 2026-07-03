@@ -12,8 +12,7 @@ const firebaseConfig = {
   projectId: "infinity-series-1f4c2",
   storageBucket: "infinity-series-1f4c2.firebasestorage.app",
   messagingSenderId: "109660304886",
-  appId: "1:109660304886:web:a73cf10875e091381c43d7",
-  measurementId: "G-PVTXG80L3P"
+  appId: "1:109660304886:web:a73cf10875e091381c43d7"
 };
 
 /* Email аккаунта-администратора (заведённого в Firebase Authentication —
