@@ -34,5 +34,12 @@
     "role": "Опорник команды организаторов",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/SE1NGG"}
+  },
+  {
+    "id": 5,
+    "name": "Koariy",
+    "role": "Организатор турнира",
+    "photo": "",
+    "socials": { "twitch": "https://twitch.tv/koariy" }
   }
 ]

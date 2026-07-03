@@ -61,14 +61,23 @@ async function renderLeaderboard(){
     return;
   }
 
-  const games = ['CS2', 'Dota2', 'PUBG'].filter(g => teams.some(t => t.game === g));
+  // Список дисциплин собираем прямо из данных команд, а не из
+  // фиксированного массива — так любая игра, добавленная организатором
+  // через "Список игр" в admin.html, сразу получает свою вкладку
+  // рейтинга наравне с CS2/Dota2/PUBG, без правок кода.
+  const knownOrder = ['CS2', 'Dota2', 'PUBG'];
+  const allGames = [...new Set(teams.map(t => t.game).filter(Boolean))];
+  const games = [
+    ...knownOrder.filter(g => allGames.includes(g)),
+    ...allGames.filter(g => !knownOrder.includes(g)).sort((a, b) => a.localeCompare(b)),
+  ];
   if(!games.length){
     tabsWrap.innerHTML = '';
     tableWrap.innerHTML = `<div class="empty-state">Рейтинг появится после первого завершённого турнира.</div>`;
     return;
   }
 
-  tabsWrap.innerHTML = games.map((g, i) => `<button class="filter-btn ${i === 0 ? 'active' : ''}" data-game="${g}">${gameLabelT[g]}</button>`).join('');
+  tabsWrap.innerHTML = games.map((g, i) => `<button class="filter-btn ${i === 0 ? 'active' : ''}" data-game="${g}" style="--i:${i}">${gameLabelT[g] || g}</button>`).join('');
 
   function draw(game){
     const rows = teams.filter(t => t.game === game).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
@@ -78,7 +87,7 @@ async function renderLeaderboard(){
         const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
         const crown = i === 0 ? `<span class="lb-crown">👑</span>` : '';
         return `
-        <div class="leaderboard-row ${rankClass}">
+        <div class="leaderboard-row ${rankClass}" style="--i:${i}">
           ${crown}
           <div class="lb-rank">#${i + 1}</div>
           <div class="lb-name">${t.name}${trophyBadges(t.trophies)}</div>

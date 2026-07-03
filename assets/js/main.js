@@ -311,6 +311,7 @@ function teamCardHTML(t, i){
       ${t.socials?.faceit ? `<a href="${t.socials.faceit}" target="_blank" rel="noopener">FACEIT</a>` : ''}
       ${t.socials?.telegram ? `<a href="${t.socials.telegram}" target="_blank" rel="noopener">TG</a>` : ''}
       ${t.socials?.vk ? `<a href="${t.socials.vk}" target="_blank" rel="noopener">VK</a>` : ''}
+      ${t.socials?.twitch ? `<a href="${t.socials.twitch}" target="_blank" rel="noopener">TWITCH</a>` : ''}
     </div>
   </div>`;
 }
