@@ -89,7 +89,7 @@ html{ scrollbar-color:var(--color-accent) var(--color-ink); scrollbar-width:thin
 
 body.has-bg-image{
   background-image:
-    linear-gradient(180deg, rgba(20,21,24,0.35), rgba(20,21,24,0.55)),
+    linear-gradient(180deg, rgba(20,21,24,0.22), rgba(20,21,24,0.4)),
     var(--user-bg-image);
   background-size:cover;
   background-position:center;
@@ -97,9 +97,9 @@ body.has-bg-image{
   color:var(--color-text);
 }
 body.has-bg-image .page-surface{
-  background:rgba(33,34,38,0.6);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
+  background:rgba(28,29,33,0.42);
+  backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);
   border-radius:24px;
   padding:8px 0 40px;
 }
