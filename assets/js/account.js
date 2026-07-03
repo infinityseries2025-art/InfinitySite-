@@ -241,7 +241,7 @@ profileForm.addEventListener('submit', async (e) => {
       socials: {
         telegram: pTelegram.value.trim(),
         discord: pDiscord.value.trim(),
-        vk: pVk.value.trim(),
+        faceit: pFaceit.value.trim(),
         twitch: pTwitch.value.trim(),
       },
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
