@@ -208,7 +208,7 @@ async function loadProfile(uid){
     const socials = p.socials || {};
     pTelegram.value = socials.telegram || '';
     pDiscord.value = socials.discord || '';
-    pVk.value = socials.vk || '';
+    pFaceit.value = socials.faceit || '';
     pTwitch.value = socials.twitch || '';
     currentAvatarDataURL = p.avatar || '';
     renderAvatarPreview();
