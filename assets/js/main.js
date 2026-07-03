@@ -18,7 +18,7 @@ function getBasePath(){
 
 async function loadJSON(name){
   try{
-    const res = await fetch(DATA_PATH + name + '.json', { cache: 'no-store' });
+    const res = await fetch(DATA_PATH + name + '.json', { cache: 'force-cache' });
     if(!res.ok) throw new Error('not ok');
     return await res.json();
   }catch(e){
@@ -169,11 +169,17 @@ async function loadNews(){
   return (await loadJSON('news')) || [];
 }
 
+const LOADING_HTML = `<div class="empty-state">Загрузка…</div>`;
+
 /* ---------- страница: главная ---------- */
 async function renderHomePreview(){
+  const upcomingWrap = document.querySelector('[data-role="home-upcoming"]');
+  const newsWrap = document.querySelector('[data-role="home-news"]');
+  if(upcomingWrap) upcomingWrap.innerHTML = LOADING_HTML;
+  if(newsWrap) newsWrap.innerHTML = LOADING_HTML;
+
   const [schedule, news] = await Promise.all([loadSchedule(), loadNews()]);
 
-  const upcomingWrap = document.querySelector('[data-role="home-upcoming"]');
   if(upcomingWrap){
     const upcoming = (schedule || []).filter(m => m.status !== 'finished').slice(0,3);
     upcomingWrap.innerHTML = upcoming.length
@@ -181,7 +187,6 @@ async function renderHomePreview(){
       : `<div class="empty-state">Ближайших матчей пока нет — загляните позже.</div>`;
   }
 
-  const newsWrap = document.querySelector('[data-role="home-news"]');
   if(newsWrap){
     const items = (news || []).slice(0,3);
     newsWrap.innerHTML = items.length
@@ -194,6 +199,7 @@ async function renderHomePreview(){
 async function renderSchedulePage(){
   const wrap = document.querySelector('[data-role="schedule-list"]');
   if(!wrap) return;
+  wrap.innerHTML = LOADING_HTML;
   const schedule = (await loadSchedule()) || [];
   schedule.sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
 
@@ -229,6 +235,7 @@ function newsCardHTML(n, i){
 async function renderNewsPage(){
   const wrap = document.querySelector('[data-role="news-list"]');
   if(!wrap) return;
+  wrap.innerHTML = LOADING_HTML;
   const news = (await loadNews()) || [];
   news.sort((a,b) => (b.date||'').localeCompare(a.date||''));
   wrap.innerHTML = news.length ? news.map((n,i) => newsCardHTML(n,i)).join('') : `<div class="empty-state">Новостей пока нет.</div>`;
