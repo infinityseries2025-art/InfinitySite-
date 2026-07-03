@@ -6,6 +6,14 @@
    коде сайта, реальная защита данных настраивается правилами
    Firestore (см. FIREBASE_SETUP.md в корне проекта).
 ========================================================= */
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBUzCjDqDmuaKLQY3Q5zhYhgfuOqnPgdak",
   authDomain: "infinity-series-1f4c2.firebaseapp.com",
@@ -15,6 +23,10 @@ const firebaseConfig = {
   appId: "1:109660304886:web:a73cf10875e091381c43d7",
   measurementId: "G-PVTXG80L3P"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 /* Email аккаунта-администратора (заведённого в Firebase Authentication —
    см. FIREBASE_SETUP.md, шаг 3). Именно по этому email сайт определяет,
