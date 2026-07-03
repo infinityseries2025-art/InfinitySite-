@@ -49,8 +49,33 @@
   {
     "id": 7,
     "name": "KniNee",
-    "role": "Coach",
+    "role": "Менеджер",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/k9"}
+  },
+  {
+    "id": 8,
+    "name": "WeatheRR",
+    "role": "Менеджер",
+    "photo": "",
+    "socials": { "faceit": "https://www.faceit.com/ru/players/-weatheRR"}
+  },
+  {
+    "id": 8,
+    "name": "So1okay",
+    "role": "Менеджер",
+    "photo": "",
+    "socials": { "faceit": "https://www.faceit.com/ru/players/Vitralya"}
+    
+  },
+
+    {
+    "id": 8,
+    "name": "Scythvyyyse",
+    "role": "Менеджер",
+    "photo": "",
+    "socials": 
   }
+  
+  
 ]
