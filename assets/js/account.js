@@ -42,7 +42,7 @@ if(viewedUid){
       const socialLinks = [];
       if(socials.telegram) socialLinks.push({ label: 'Telegram', href: socials.telegram.startsWith('http') ? socials.telegram : `https://t.me/${socials.telegram.replace(/^@/, '')}` });
       if(socials.discord) socialLinks.push({ label: 'Discord', href: null, text: socials.discord });
-      if(socials.vk) socialLinks.push({ label: 'VK', href: socials.vk.startsWith('http') ? socials.vk : `https://vk.com/${socials.vk}` });
+      if(socials.faceit) socialLinks.push({ label: 'Faceit', href: socials.faceit.startsWith('http') ? socials.faceit : `https://www.faceit.com/en/players/${socials.faceit}` });
       if(socials.twitch) socialLinks.push({ label: 'Twitch', href: socials.twitch.startsWith('http') ? socials.twitch : `https://twitch.tv/${socials.twitch}` });
       socialsEl.innerHTML = socialLinks.map(s =>
         s.href ? `<a href="${s.href}" target="_blank" rel="noopener">${s.label}</a>`
