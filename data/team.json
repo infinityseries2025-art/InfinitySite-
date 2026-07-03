@@ -5,13 +5,13 @@
     "role": "Организатор турнира",
     "photo": "",
     "socials": { 
-      "telegram":"https://t.me/jelly9design",
+      "telegram":"t.me/jelly9design",
       "faceit": "https://www.faceit.com/ru/players/3XOMIMI"}
   },
   {
     "id": 2,
     "name": "Hez1",
-    "role": "Coach",
+    "role": "Капитан команды организаторов",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/Felexxx1715"}
   },
@@ -24,7 +24,7 @@
   },
   {
     "id": 4,
-    "name": "Cheliks52",
+    "name": "cheliks52",
     "role": "Рифлер команды организаторов",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/Cheliks52"}
@@ -49,15 +49,8 @@
   {
     "id": 7,
     "name": "KniNee",
-    "role": "Коментатор",
+    "role": "Coach",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/k9"}
-  },
-  {
-    "id": 8,
-    "name": "WeatheRR",
-    "role": "Рифлер команды организаторов",
-    "photo": "",
-    "socials": { "faceit": "hhttps://www.faceit.com/ru/players/-weatheRR"}
   }
 ]
