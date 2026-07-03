@@ -22,7 +22,7 @@ const firebaseConfig = {
    (шаг 2 в FIREBASE_SETUP.md), иначе обычный посетитель, создавший себе
    аккаунт на account.html, сможет менять данные напрямую через консоль
    разработчика в браузере. */
-const ADMIN_EMAIL = "ВСТАВЬ_СЮДА_EMAIL_АДМИНА";
+const ADMIN_EMAIL = "infinityseries2025@gmail.com";
 
 // Инициализация (используется на страницах register.html, participants.html, admin.html, account.html)
 firebase.initializeApp(firebaseConfig);
