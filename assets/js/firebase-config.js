@@ -27,7 +27,6 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-
 /* Email аккаунта-администратора (заведённого в Firebase Authentication —
    см. FIREBASE_SETUP.md, шаг 3). Именно по этому email сайт определяет,
    что вошедший человек — организатор, и пускает его в admin.html.
