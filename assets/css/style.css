@@ -74,6 +74,19 @@ body::before{
 }
 .navbar, main, .footer{ position:relative; z-index:1; }
 
+::selection{ background:var(--color-accent); color:#1C1D21; }
+
+/* фирменный скроллбар вместо системного */
+::-webkit-scrollbar{ width:11px; height:11px; }
+::-webkit-scrollbar-track{ background:var(--color-ink); }
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg, var(--color-accent), var(--color-accent-deep));
+  border-radius:999px;
+  border:2px solid var(--color-ink);
+}
+::-webkit-scrollbar-thumb:hover{ background:var(--color-accent-deep); }
+html{ scrollbar-color:var(--color-accent) var(--color-ink); scrollbar-width:thin; }
+
 body.has-bg-image{
   background-image:
     linear-gradient(180deg, rgba(28,29,33,0.78), rgba(28,29,33,0.92)),

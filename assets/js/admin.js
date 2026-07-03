@@ -56,14 +56,40 @@ function readRow(tr){
   };
 }
 
+// Матчи без даты/времени (только что созданные, ещё не заполненные)
+// всегда уходят в конец списка, а не смешиваются с реальным расписанием.
+function sortScheduleDocs(docs){
+  return docs.slice().sort((a, b) => {
+    const da = a.data().date || '9999-99-99';
+    const dbb = b.data().date || '9999-99-99';
+    if(da !== dbb) return da < dbb ? -1 : 1;
+    const ta = a.data().time || '99:99';
+    const tb = b.data().time || '99:99';
+    if(ta !== tb) return ta < tb ? -1 : 1;
+    return 0;
+  });
+}
+
+function showScheduleMessage(text){
+  rowsBody.innerHTML = `<tr><td colspan="10"><div class="empty-state">${text}</div></td></tr>`;
+}
+
 function startScheduleListener(){
   if(scheduleUnsub) return;
-  scheduleUnsub = db.collection('schedule').orderBy('date').orderBy('time')
+  // Без orderBy на нескольких полях сразу — так запросу не нужен
+  // составной индекс в Firestore, и таблица не остаётся пустой,
+  // если такой индекс не был создан заранее.
+  scheduleUnsub = db.collection('schedule')
     .onSnapshot((snap) => {
       rowsBody.innerHTML = '';
-      snap.forEach(doc => rowsBody.appendChild(rowTemplate(doc.id, doc.data())));
+      if(snap.empty){
+        showScheduleMessage('Матчей пока нет — нажми «+ Добавить матч», чтобы создать первый.');
+        return;
+      }
+      sortScheduleDocs(snap.docs).forEach(doc => rowsBody.appendChild(rowTemplate(doc.id, doc.data())));
     }, (err) => {
       console.error(err);
+      showScheduleMessage('Не удалось загрузить расписание. Проверь настройки Firebase (см. FIREBASE_SETUP.md) и консоль браузера (F12).');
     });
 }
 function stopScheduleListener(){
@@ -99,16 +125,44 @@ rowsBody.addEventListener('click', async (e) => {
   }
 });
 
-document.getElementById('add-row').addEventListener('click', async () => {
+const addRowBtn = document.getElementById('add-row');
+addRowBtn.addEventListener('click', async () => {
+  if(addRowBtn.disabled) return; // защита от повторного клика, пока идёт сохранение
+  addRowBtn.disabled = true;
+  const originalLabel = addRowBtn.textContent;
+  addRowBtn.textContent = 'Добавляю…';
+
+  // Убираем сообщение-заглушку "матчей пока нет", если оно есть в таблице
+  if(rowsBody.querySelector('.empty-state')) rowsBody.innerHTML = '';
+
+  const draft = {
+    game: 'CS2', stage: '', teamA: '', teamB: '',
+    date: '', time: '', status: 'upcoming', score: '', stream: '',
+  };
+
   try{
-    await db.collection('schedule').add({
-      game: 'CS2', stage: '', teamA: '', teamB: '',
-      date: '', time: '', status: 'upcoming', score: '', stream: '',
+    const ref = await db.collection('schedule').add({
+      ...draft,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
+    // Не ждём onSnapshot — сразу показываем новую строку, чтобы клик
+    // ощущался мгновенным, даже если сеть отвечает медленно.
+    if(!rowsBody.querySelector(`tr[data-id="${ref.id}"]`)){
+      const tr = rowTemplate(ref.id, draft);
+      tr.classList.add('row-just-added');
+      rowsBody.appendChild(tr);
+    }
+    const newRow = rowsBody.querySelector(`tr[data-id="${ref.id}"]`);
+    if(newRow){
+      newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      newRow.querySelector('.f-stage')?.focus();
+    }
   }catch(err){
     console.error(err);
-    alert('Не удалось создать новый матч.');
+    alert('Не удалось создать новый матч. Проверь подключение к Firebase (см. FIREBASE_SETUP.md) и консоль браузера (F12) — там будет точная причина.');
+  }finally{
+    addRowBtn.disabled = false;
+    addRowBtn.textContent = originalLabel;
   }
 });
 

@@ -35,6 +35,23 @@
   .app-status-badge.pending{ background:var(--status-upcoming); color:#1C1D21; }
   .app-status-badge.approved{ background:var(--color-accent); color:#1C1D21; }
   .app-status-badge.rejected{ background:var(--status-live); color:#fff; }
+
+  /* --- полировка редактора расписания --- */
+  .btn:disabled{ opacity:.6; cursor:not-allowed; transform:none !important; box-shadow:var(--shadow-tight) !important; }
+  #admin-rows tr{ transition:background .2s ease; border-bottom:1px solid var(--color-primary-line); }
+  #admin-rows tr:hover{ background:rgba(255,172,188,0.05); }
+  #admin-rows .empty-state{ margin:6px 0; }
+  @keyframes rowAddedGlow{
+    0%{ background:rgba(255,172,188,0.28); }
+    100%{ background:transparent; }
+  }
+  .row-just-added{ animation:rowAddedGlow 1.6s ease-out; }
+  .admin-table input:focus, .admin-table select:focus{
+    outline:none; border-color:var(--color-accent); box-shadow:0 0 0 3px var(--color-accent-glow);
+  }
+  .row-remove{ transition:transform .15s ease, color .15s ease; }
+  .row-remove:hover{ transform:scale(1.15); color:#fff; }
+  #add-row{ transition:background .25s ease, transform .2s var(--ease), box-shadow .25s ease; }
 </style>
 </head>
 <body data-page="admin">
