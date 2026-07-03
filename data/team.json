@@ -1,30 +1,38 @@
 [
   {
     "id": 1,
-    "name": "Алексей Волков",
-    "role": "Основатель и турнирный директор",
+    "name": "Exomi",
+    "role": "Организатор турнира",
     "photo": "",
-    "socials": { "telegram": "https://t.me/", "vk": "" }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/3XOMIMI"}
   },
   {
     "id": 2,
-    "name": "Мария Соколова",
-    "role": "Продюсер трансляций",
+    "name": "Hez1",
+    "role": "Капитан команды организаторов",
     "photo": "",
-    "socials": { "telegram": "", "vk": "" }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/Felexxx1715"}
   },
   {
     "id": 3,
-    "name": "Игорь Крылов",
-    "role": "Судья / администратор турнирной сетки",
+    "name": "dizerix52",
+    "role": "Снайпер команды организаторов",
     "photo": "",
-    "socials": { "telegram": "", "vk": "" }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/dizerix52"}
   },
   {
     "id": 4,
-    "name": "Дарья Орлова",
-    "role": "SMM и работа с командами",
+    "name": "cheliks52",
+    "role": "Рифлер команды организаторов",
     "photo": "",
-    "socials": { "telegram": "", "vk": "" }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/Cheliks52"}
+  },
+
+  {
+    "id": 4,
+    "name": "Se1ng",
+    "role": "Опорник команды организаторов",
+    "photo": "",
+    "socials": { "faceit": "https://www.faceit.com/ru/players/SE1NGG"}
   }
 ]

@@ -20,9 +20,9 @@
   --color-surface-alt:  #292A30; /* поля ввода / альтернативные поверхности */
 
   /* цветовые метки игр */
-  --game-cs2:   #7C93E0;
-  --game-dota2: #B08CF0;
-  --game-pubg:  #E3A24E;
+  --game-cs2:   #ff7a0d;
+  --game-dota2: #ff1313;
+  --game-pubg:  #705025;
 
   --status-upcoming: #8CA0FF;
   --status-live:     #FF5C6C;
