@@ -282,6 +282,7 @@ function teamCardHTML(t, i){
     <h3>${t.name}</h3>
     <div class="role">${t.role || ''}</div>
     <div class="socials">
+      ${t.socials?.faceit ? `<a href="${t.socials.faceit}" target="_blank" rel="noopener">FACEIT</a>` : ''}
       ${t.socials?.telegram ? `<a href="${t.socials.telegram}" target="_blank" rel="noopener">TG</a>` : ''}
       ${t.socials?.vk ? `<a href="${t.socials.vk}" target="_blank" rel="noopener">VK</a>` : ''}
     </div>
@@ -305,6 +306,8 @@ async function renderContactsPage(config){
     c.telegram ? ['💬', 'Telegram', `<a href="${c.telegram}" target="_blank" rel="noopener">${c.telegram}</a>`] : null,
     c.discord ? ['🎮', 'Discord', `<a href="${c.discord}" target="_blank" rel="noopener">${c.discord}</a>`] : null,
     c.vk ? ['🔵', 'VK', `<a href="${c.vk}" target="_blank" rel="noopener">${c.vk}</a>`] : null,
+    c.youtube ? ['▶️', 'YouTube', `<a href="${c.youtube}" target="_blank" rel="noopener">${c.youtube}</a>`] : null,
+    c.twitch ? ['🟣', 'Twitch', `<a href="${c.twitch}" target="_blank" rel="noopener">${c.twitch}</a>`] : null,
   ].filter(Boolean);
   wrap.innerHTML = rows.map(([ic,label,val]) => `
     <div class="contact-row">
