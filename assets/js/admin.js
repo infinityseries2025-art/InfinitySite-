@@ -259,14 +259,135 @@ async function finishTournament(t){
   }
 }
 
+/* ---------------------- НОВОСТИ ---------------------- */
+const newsForm = document.getElementById('news-form');
+const newsList = document.getElementById('news-admin-list');
+const newsIdField = document.getElementById('nId');
+const newsFormTitle = document.getElementById('news-form-title');
+const newsSubmitBtn = document.getElementById('news-submit-btn');
+const newsCancelBtn = document.getElementById('news-cancel-edit');
+let newsUnsub = null;
+let newsCache = [];
+
+function newsAdminCardHTML(n){
+  return `
+  <div class="card news-card" data-id="${n.id}">
+    <div class="thumb">${n.image ? `<img src="${n.image}" alt="${n.title}">` : 'Infinity Series Tournaments'}</div>
+    <div class="body">
+      <div class="date">${n.date || ''}</div>
+      <h3>${n.title || ''}</h3>
+      <p>${n.excerpt || ''}</p>
+      <div class="app-actions" style="margin-top:10px;">
+        <button type="button" class="news-edit" data-id="${n.id}">Редактировать</button>
+        <button type="button" class="news-delete" data-id="${n.id}">Удалить</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function startNewsListener(){
+  if(newsUnsub || !newsList) return;
+  newsUnsub = db.collection('news').orderBy('date', 'desc')
+    .onSnapshot((snap) => {
+      newsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      newsList.innerHTML = newsCache.length
+        ? newsCache.map(newsAdminCardHTML).join('')
+        : `<div class="empty-state">Новостей пока нет — добавь первую выше.</div>`;
+    }, (err) => {
+      console.error(err);
+      newsList.innerHTML = `<div class="empty-state">Не удалось загрузить новости.</div>`;
+    });
+}
+function stopNewsListener(){
+  if(newsUnsub){ newsUnsub(); newsUnsub = null; }
+}
+
+function resetNewsForm(){
+  newsForm.reset();
+  newsIdField.value = '';
+  newsFormTitle.textContent = 'Добавить новость';
+  newsSubmitBtn.textContent = 'Опубликовать';
+  newsCancelBtn.style.display = 'none';
+}
+
+if(newsForm){
+  newsForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = newsIdField.value;
+    const data = {
+      title: document.getElementById('nTitle').value.trim(),
+      date: document.getElementById('nDate').value,
+      image: document.getElementById('nImage').value.trim(),
+      excerpt: document.getElementById('nExcerpt').value.trim(),
+      content: document.getElementById('nContent').value.trim(),
+    };
+    if(!data.title || !data.date || !data.excerpt || !data.content){
+      alert('Заполни заголовок, дату, короткое описание и текст новости.');
+      return;
+    }
+    try{
+      if(id){
+        await db.collection('news').doc(id).update(data);
+      }else{
+        await db.collection('news').add({
+          ...data,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+      resetNewsForm();
+    }catch(err){
+      console.error(err);
+      alert('Не удалось сохранить новость. Попробуй ещё раз.');
+    }
+  });
+}
+
+if(newsCancelBtn){
+  newsCancelBtn.addEventListener('click', resetNewsForm);
+}
+
+if(newsList){
+  newsList.addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.news-edit');
+    if(editBtn){
+      const n = newsCache.find(x => x.id === editBtn.getAttribute('data-id'));
+      if(!n) return;
+      newsIdField.value = n.id;
+      document.getElementById('nTitle').value = n.title || '';
+      document.getElementById('nDate').value = n.date || '';
+      document.getElementById('nImage').value = n.image || '';
+      document.getElementById('nExcerpt').value = n.excerpt || '';
+      document.getElementById('nContent').value = n.content || '';
+      newsFormTitle.textContent = 'Редактировать новость';
+      newsSubmitBtn.textContent = 'Сохранить';
+      newsCancelBtn.style.display = 'inline-block';
+      newsForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const delBtn = e.target.closest('.news-delete');
+    if(delBtn){
+      if(!confirm('Удалить эту новость без возможности восстановления?')) return;
+      try{
+        await db.collection('news').doc(delBtn.getAttribute('data-id')).delete();
+        if(newsIdField.value === delBtn.getAttribute('data-id')) resetNewsForm();
+      }catch(err){
+        console.error(err);
+        alert('Не удалось удалить новость.');
+      }
+    }
+  });
+}
+
 /* Слушатели расписания/турниров включаются только когда организатор
    вошёл в систему (см. admin-auth.js → auth.onAuthStateChanged). */
 auth.onAuthStateChanged((user) => {
-  if(user){
+  if(isAdminUser(user)){
     startScheduleListener();
     startTournamentsListener();
+    startNewsListener();
   }else{
     stopScheduleListener();
     stopTournamentsListener();
+    stopNewsListener();
   }
 });

@@ -3,7 +3,9 @@
    Ничего в этом файле редактировать НЕ нужно, чтобы:
    - поменять лого/фон  → data/config.json
    - поменять расписание → через admin.html (хранится в Firebase)
-   - поменять новости     → data/news.json
+   - поменять новости     → через admin.html (хранится в Firebase);
+                             data/news.json остался только как запасной
+                             вариант, пока в Firebase новостей ещё нет
    - поменять состав команды → data/team.json
 ========================================================= */
 
@@ -151,9 +153,25 @@ async function loadSchedule(){
   }
 }
 
+/* ---------- новости: теперь хранятся в Firebase (Firestore), коллекция
+   "news" — добавляются/редактируются прямо из admin.html. Пока в Firestore
+   ничего нет (или страница открыта без настроенного Firebase), сайт
+   показывает старый data/news.json, чтобы ничего не сломалось. ---------- */
+async function loadNews(){
+  if(typeof db !== 'undefined'){
+    try{
+      const snap = await db.collection('news').orderBy('date', 'desc').get();
+      if(!snap.empty) return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }catch(e){
+      console.warn('Не удалось загрузить новости из Firebase', e);
+    }
+  }
+  return (await loadJSON('news')) || [];
+}
+
 /* ---------- страница: главная ---------- */
 async function renderHomePreview(){
-  const [schedule, news] = await Promise.all([loadSchedule(), loadJSON('news')]);
+  const [schedule, news] = await Promise.all([loadSchedule(), loadNews()]);
 
   const upcomingWrap = document.querySelector('[data-role="home-upcoming"]');
   if(upcomingWrap){
@@ -211,8 +229,8 @@ function newsCardHTML(n, i){
 async function renderNewsPage(){
   const wrap = document.querySelector('[data-role="news-list"]');
   if(!wrap) return;
-  const news = (await loadJSON('news')) || [];
-  news.sort((a,b) => b.date.localeCompare(a.date));
+  const news = (await loadNews()) || [];
+  news.sort((a,b) => (b.date||'').localeCompare(a.date||''));
   wrap.innerHTML = news.length ? news.map((n,i) => newsCardHTML(n,i)).join('') : `<div class="empty-state">Новостей пока нет.</div>`;
 }
 

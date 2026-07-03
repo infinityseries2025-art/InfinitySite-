@@ -14,8 +14,13 @@ const appsList = document.getElementById('applications-list');
 
 let unsubscribeApps = null;
 
+function isAdminUser(user){
+  return !!(user && user.email && ADMIN_EMAIL &&
+    user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+}
+
 auth.onAuthStateChanged((user) => {
-  if(user){
+  if(isAdminUser(user)){
     loginSection.style.display = 'none';
     contentSection.style.display = 'block';
     // элементы .reveal внутри панели уже в DOM (просто были скрыты) —
@@ -23,6 +28,9 @@ auth.onAuthStateChanged((user) => {
     contentSection.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
     startApplicationsListener();
   }else{
+    // сюда попадает и гость, и обычный пользователь (создавший аккаунт на
+    // account.html), который зашёл на admin.html напрямую по ссылке —
+    // им обоим показываем форму входа, без доступа к содержимому панели
     loginSection.style.display = 'block';
     contentSection.style.display = 'none';
     if(unsubscribeApps){ unsubscribeApps(); unsubscribeApps = null; }
@@ -36,7 +44,12 @@ loginForm.addEventListener('submit', async (e) => {
   const email = loginForm.email.value.trim();
   const password = loginForm.password.value;
   try{
-    await auth.signInWithEmailAndPassword(email, password);
+    const cred = await auth.signInWithEmailAndPassword(email, password);
+    if(!isAdminUser(cred.user)){
+      await auth.signOut();
+      loginStatus.textContent = 'Этот аккаунт не является администраторским. Панель организатора доступна только по email, указанному в ADMIN_EMAIL (assets/js/firebase-config.js).';
+      loginStatus.className = 'form-msg error';
+    }
   }catch(err){
     console.error('Firebase auth error:', err.code, err.message);
     const messages = {

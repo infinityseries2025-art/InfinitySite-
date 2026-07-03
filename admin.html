@@ -163,6 +163,48 @@
       <div id="tournaments-admin-list"></div>
     </section>
 
+    <section class="section container reveal">
+      <span class="eyebrow">Новости</span>
+      <h2 id="news-form-title">Добавить новость</h2>
+      <p class="tagline">
+        Новость сразу появляется на странице «Новости» и в блоке новостей на главной.
+        Чтобы отредактировать существующую новость — нажми «Редактировать» в списке ниже,
+        поправь поля и нажми «Сохранить».
+      </p>
+      <div class="card contact-card" style="max-width:640px;">
+        <form id="news-form">
+          <input type="hidden" id="nId" value="">
+          <div class="form-field">
+            <label for="nTitle">Заголовок</label>
+            <input id="nTitle" name="nTitle" type="text" required maxlength="140" placeholder="Открыта регистрация на летний сезон">
+          </div>
+          <div class="form-field">
+            <label for="nDate">Дата</label>
+            <input id="nDate" name="nDate" type="date" required>
+          </div>
+          <div class="form-field">
+            <label for="nImage">Картинка (ссылка, необязательно)</label>
+            <input id="nImage" name="nImage" type="text" placeholder="assets/images/... или https://...">
+          </div>
+          <div class="form-field">
+            <label for="nExcerpt">Короткое описание (для карточки)</label>
+            <input id="nExcerpt" name="nExcerpt" type="text" maxlength="200" required placeholder="Одно-два предложения для превью">
+          </div>
+          <div class="form-field">
+            <label for="nContent">Полный текст новости</label>
+            <textarea id="nContent" name="nContent" required style="min-height:130px;" placeholder="Полный текст новости"></textarea>
+          </div>
+          <div class="admin-actions" style="margin-top:0;">
+            <button class="btn" type="submit" id="news-submit-btn">Опубликовать</button>
+            <button class="btn secondary" type="button" id="news-cancel-edit" style="display:none;">Отменить редактирование</button>
+          </div>
+        </form>
+      </div>
+
+      <h2 style="margin-top:36px;">Опубликованные новости</h2>
+      <div class="grid cols-3" id="news-admin-list"></div>
+    </section>
+
   </div>
 </main>
 
