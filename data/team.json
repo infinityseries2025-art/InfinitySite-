@@ -4,7 +4,9 @@
     "name": "Exomi",
     "role": "Организатор турнира",
     "photo": "",
-    "socials": { "faceit": "https://www.faceit.com/ru/players/3XOMIMI"}
+    "socials": { 
+      "telegram":"t.me/jelly9design",
+      "faceit": "https://www.faceit.com/ru/players/3XOMIMI"}
   },
   {
     "id": 2,
@@ -40,6 +42,8 @@
     "name": "Koariy",
     "role": "Организатор турнира",
     "photo": "",
-    "socials": { "twitch": "https://twitch.tv/koariy" }
+    "socials": { 
+      "faceit":"https://www.faceit.com/ru/players/v14er",
+      "twitch": "https://twitch.tv/koariy" }
   }
 ]
