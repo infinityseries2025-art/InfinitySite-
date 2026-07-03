@@ -46,4 +46,12 @@
       "faceit":"https://www.faceit.com/ru/players/v14er",
       "twitch": "https://twitch.tv/koariy" }
   }
+  {
+    "id": 5,
+    "name": "KniNee",
+    "role": "Организатор турнира",
+    "photo": "",
+    "socials": { 
+      "faceit":"https://www.faceit.com/ru/players/KNINE" }
+  }
 ]
