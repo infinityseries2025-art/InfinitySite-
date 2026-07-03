@@ -31,14 +31,14 @@
   },
 
   {
-    "id": 4,
+    "id": 5,
     "name": "Se1ng",
     "role": "Опорник команды организаторов",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/SE1NGG"}
   },
   {
-    "id": 5,
+    "id": 6,
     "name": "Koariy",
     "role": "Организатор турнира/Стример",
     "photo": "",
@@ -47,7 +47,7 @@
       "twitch": "https://twitch.tv/koariy" }
   },
   {
-    "id": 6,
+    "id": 7,
     "name": "KniNee",
     "role": "Coach",
     "photo": "",
