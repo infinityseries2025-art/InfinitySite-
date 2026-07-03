@@ -40,18 +40,17 @@
   {
     "id": 5,
     "name": "Koariy",
-    "role": "Организатор турнира",
+    "role": "Организатор турнира/Стример",
     "photo": "",
     "socials": { 
       "faceit":"https://www.faceit.com/ru/players/v14er",
       "twitch": "https://twitch.tv/koariy" }
-  }
+  },
   {
-    "id": 5,
+    "id": 6,
     "name": "KniNee",
     "role": "Coach",
     "photo": "",
-    "socials": { 
-      "faceit":"https://www.faceit.com/ru/players/KNINE" }
+    "socials": { "faceit": "https://www.faceit.com/ru/players/KNINE"}
   }
 ]
