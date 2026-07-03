@@ -11,7 +11,7 @@
   {
     "id": 2,
     "name": "Hez1",
-    "role": "Капитан команды организаторов",
+    "role": "Coach",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/Felexxx1715"}
   },
@@ -24,7 +24,7 @@
   },
   {
     "id": 4,
-    "name": "cheliks52",
+    "name": "Cheliks52",
     "role": "Рифлер команды организаторов",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/Cheliks52"}
@@ -49,8 +49,15 @@
   {
     "id": 7,
     "name": "KniNee",
-    "role": "Coach",
+    "role": "Коментатор",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/k9"}
+  }
+  {
+    "id": 8,
+    "name": "-weatheRR",
+    "role": "Коментатор",
+    "photo": "",
+    "socials": { "faceit": "hhttps://www.faceit.com/ru/players/-weatheRR"}
   }
 ]
