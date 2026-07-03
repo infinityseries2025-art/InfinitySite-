@@ -304,7 +304,7 @@ function teamCardHTML(t, i){
   const initials = (t.name || '').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
   return `
   <div class="card team-card" style="--i:${i}">
-    <div class="team-avatar">${t.photo ? `<img src="${t.photo}" alt="${t.name}">` : initials}</div>
+    <div class="team-avatar"><div class="team-avatar-inner">${t.photo ? `<img src="${t.photo}" alt="${t.name}">` : initials}</div></div>
     <h3>${t.name}</h3>
     <div class="role">${t.role || ''}</div>
     <div class="socials">
