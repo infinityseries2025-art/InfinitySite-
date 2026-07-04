@@ -95,15 +95,9 @@ async function initChrome(config){
 
   // фоновая картинка сайта
   const bgUrl = config?.background || 'assets/images/background.jpg';
-  // Превращаем путь в ПОЛНЫЙ абсолютный URL (с доменом и подпапкой сайта).
-  // Это нужно, чтобы браузер резолвил его одинаково, откуда бы он ни
-  // подставлялся — из инлайн-стиля или из внешнего style.css (у CSS
-  // custom properties относительный url() резолвится относительно того
-  // файла, где переменная ИСПОЛЬЗУЕТСЯ, а не где она объявлена).
-  const bgUrlAbsolute = new URL(bgUrl, document.baseURI).href;
-  const bgOk = await tryImage(bgUrlAbsolute);
+  const bgOk = await tryImage(bgUrl);
   if(bgOk){
-    document.body.style.setProperty('--user-bg-image', `url('${bgUrlAbsolute}')`);
+    document.body.style.setProperty('--user-bg-image', `url('${bgUrl}')`);
     document.body.classList.add('has-bg-image');
   }
 
