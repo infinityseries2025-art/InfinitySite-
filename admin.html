@@ -1,62 +1,287 @@
-[
-  {
-    "id": 1,
-    "game": "CS2",
-    "stage": "Групповой этап · День 1",
-    "teamA": "Team Aurora",
-    "teamB": "Nova Squad",
-    "date": "2026-07-05",
-    "time": "18:00",
-    "status": "upcoming",
-    "score": "",
-    "stream": "https://twitch.tv/phantomcup"
-  },
-  {
-    "id": 2,
-    "game": "Dota2",
-    "stage": "Групповой этап · День 1",
-    "teamA": "Iron Wolves",
-    "teamB": "Crimson Owls",
-    "date": "2026-07-05",
-    "time": "20:30",
-    "status": "upcoming",
-    "score": "",
-    "stream": "https://twitch.tv/phantomcup"
-  },
-  {
-    "id": 3,
-    "game": "PUBG",
-    "stage": "Квалификация · Матч 3",
-    "teamA": "Ghost Riders",
-    "teamB": "Silent Storm",
-    "date": "2026-07-06",
-    "time": "17:00",
-    "status": "upcoming",
-    "score": "",
-    "stream": "https://twitch.tv/phantomcup"
-  },
-  {
-    "id": 4,
-    "game": "CS2",
-    "stage": "Плей-офф · 1/4",
-    "teamA": "Nova Squad",
-    "teamB": "Red Falcons",
-    "date": "2026-06-28",
-    "time": "19:00",
-    "status": "finished",
-    "score": "2:1",
-    "stream": "https://twitch.tv/phantomcup"
-  },
-  {
-    "id": 5,
-    "game": "Dota2",
-    "stage": "Плей-офф · 1/4",
-    "teamA": "Crimson Owls",
-    "teamB": "Golden Dragons",
-    "date": "2026-06-27",
-    "time": "21:00",
-    "status": "finished",
-    "score": "2:0",
-    "stream": "https://twitch.tv/phantomcup"
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Панель организатора</title>
+<link rel="icon" href="assets/images/favicon.png">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .admin-table{ width:100%; border-collapse:collapse; margin-top:10px; }
+  .admin-table th{ text-align:left; font-size:12px; color:var(--color-ink-soft); padding:6px 8px; }
+  .admin-table td{ padding:6px 8px; vertical-align:top; }
+  .admin-table input, .admin-table select{
+    width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--color-primary-line);
+    font-family:var(--font-body); font-size:13px; background:var(--color-surface-alt); color:var(--color-text);
   }
-]
+  .row-remove{ background:none; border:none; color:var(--status-live); font-weight:800; cursor:pointer; font-size:16px; }
+  .admin-actions{ display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
+  .btn.secondary{ background:var(--color-surface); color:var(--color-accent-deep); border:1px solid var(--color-primary-line); }
+  #tournament-form textarea{ min-height:130px; }
+  .app-card{ padding:16px 18px; display:flex; flex-direction:column; gap:8px; }
+  .app-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .app-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .app-actions button{
+    padding:7px 14px; border-radius:999px; border:1px solid var(--color-primary-line);
+    background:var(--color-surface-alt); color:var(--color-text); font-weight:700; font-size:12.5px; cursor:pointer;
+    transition:all .2s ease;
+  }
+  .app-actions .approve:hover{ background:var(--status-upcoming); border-color:var(--status-upcoming); color:#1C1D21; }
+  .app-actions .reject:hover{ background:var(--status-live); border-color:var(--status-live); color:#fff; }
+  .app-actions .delete:hover{ background:#3a2b2b; border-color:var(--status-live); color:var(--status-live); }
+  .app-status-badge{ padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; }
+  .app-status-badge.pending{ background:var(--status-upcoming); color:#1C1D21; }
+  .app-status-badge.approved{ background:var(--color-accent); color:#1C1D21; }
+  .app-status-badge.rejected{ background:var(--status-live); color:#fff; }
+
+  /* --- полировка редактора расписания --- */
+  .btn:disabled{ opacity:.6; cursor:not-allowed; transform:none !important; box-shadow:var(--shadow-tight) !important; }
+  #admin-rows tr{ transition:background .2s ease; border-bottom:1px solid var(--color-primary-line); }
+  #admin-rows tr:hover{ background:rgba(255,172,188,0.05); }
+  #admin-rows .empty-state{ margin:6px 0; }
+  @keyframes rowAddedGlow{
+    0%{ background:rgba(255,172,188,0.28); }
+    100%{ background:transparent; }
+  }
+  .row-just-added{ animation:rowAddedGlow 1.6s ease-out; }
+  .admin-table input:focus, .admin-table select:focus{
+    outline:none; border-color:var(--color-accent); box-shadow:0 0 0 3px var(--color-accent-glow);
+  }
+  .row-remove{ transition:transform .15s ease, color .15s ease; }
+  .row-remove:hover{ transform:scale(1.15); color:#fff; }
+  #add-row{ transition:background .25s ease, transform .2s var(--ease), box-shadow .25s ease; }
+</style>
+</head>
+<body data-page="admin">
+
+<header class="navbar">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-mark" data-role="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h12v3.5c0 3.5-2.5 6-6 6s-6-2.5-6-6V3Z" stroke="white" stroke-width="1.6"/><path d="M9 15.5h6v3H9v-3Z" stroke="white" stroke-width="1.6"/></svg>
+      </span>
+      <span data-role="site-name">Infinity Series Tournaments</span>
+    </a>
+    <button class="nav-toggle" aria-label="Меню"><span></span><span></span><span></span></button>
+    <nav class="nav-links">
+      <a href="index.html" data-page="home">Главная</a>
+      <a href="news.html" data-page="news">Новости</a>
+      <a href="participants.html" data-page="participants">Участники</a>
+      <a href="schedule.html" data-page="schedule">Расписание</a>
+      <a href="tournaments.html" data-page="tournaments">Турниры</a>
+      <a href="register.html" data-page="register">Регистрация</a>
+      <a href="team.html" data-page="team">Организация</a>
+      <a href="contacts.html" data-page="contacts">Контакты</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-surface">
+
+  <!-- ЭКРАН ВХОДА: показывается, пока организатор не авторизован -->
+  <section class="section container reveal" id="admin-login">
+    <span class="eyebrow">Только для организатора</span>
+    <h1>Вход в панель</h1>
+    <p class="tagline">Эта страница защищена — доступ только у аккаунта организатора, созданного в Firebase Authentication.</p>
+    <div class="card contact-card" style="max-width:420px;">
+      <form id="login-form">
+        <div class="form-field">
+          <label for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" required autocomplete="username">
+        </div>
+        <div class="form-field">
+          <label for="login-password">Пароль</label>
+          <input id="login-password" name="password" type="password" required autocomplete="current-password">
+        </div>
+        <div id="login-status" style="margin-bottom:14px; font-size:14px;"></div>
+        <button class="btn" type="submit">Войти</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- КОНТЕНТ ПАНЕЛИ: показывается только после успешного входа -->
+  <div id="admin-content" style="display:none;">
+
+    <section class="section container reveal">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Модерация</span>
+          <h2>Заявки на участие</h2>
+        </div>
+        <button class="btn secondary" id="logout-btn">Выйти</button>
+      </div>
+      <p class="tagline" style="margin-bottom:20px;">Одобренные заявки сразу появляются на странице «Участники». Отклонённые и удалённые — не видны никому, кроме тебя.</p>
+      <div class="grid cols-2" data-role="applications-list" id="applications-list"></div>
+    </section>
+
+    <section class="section container reveal">
+      <span class="eyebrow">Расписание</span>
+      <h2>Редактор расписания</h2>
+      <p class="tagline">
+        Все изменения сохраняются автоматически в Firebase, как только ты меняешь поле — сайт подхватывает их сразу,
+        никаких файлов скачивать и коммитить в git не нужно.
+      </p>
+
+      <table class="admin-table" id="admin-table">
+        <thead>
+          <tr>
+            <th style="width:9%">Игра</th>
+            <th style="width:16%">Стадия</th>
+            <th style="width:14%">Команда A</th>
+            <th style="width:14%">Команда B</th>
+            <th style="width:11%">Дата</th>
+            <th style="width:8%">Время</th>
+            <th style="width:10%">Статус</th>
+            <th style="width:8%">Счёт</th>
+            <th style="width:14%">Ссылка на трансляцию</th>
+            <th style="width:4%"></th>
+          </tr>
+        </thead>
+        <tbody id="admin-rows"></tbody>
+      </table>
+
+      <div class="admin-actions">
+        <button class="btn secondary" id="add-row">+ Добавить матч</button>
+      </div>
+    </section>
+
+    <section class="section container reveal">
+      <span class="eyebrow">Турниры</span>
+      <h2>Создать турнир</h2>
+      <p class="tagline">
+        Укажи название (например, «IST Season 1»), игру и список команд — по одной на строке.
+        Сетка на выбывание строится автоматически. По ходу турнира отмечай победителя в каждом матче,
+        а когда сетка дойдёт до финала — нажми «Завершить турнир»: всем участникам пересчитается
+        рейтинг Эло, а победитель автоматически получит титул «Обладатели трофея {название турнира}».
+      </p>
+      <div class="card contact-card" style="max-width:640px;">
+        <form id="tournament-form">
+          <div class="form-field">
+            <label for="tName">Название турнира</label>
+            <input id="tName" name="tName" type="text" required maxlength="80" placeholder="IST Season 1">
+          </div>
+          <div class="form-field">
+            <label for="tGame">Игра</label>
+            <select id="tGame" name="tGame" style="width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-family:var(--font-body); font-size:14px;">
+              <option value="CS2">CS2</option>
+              <option value="Dota2">Dota 2</option>
+              <option value="PUBG">PUBG</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="newGameName">Новая дисциплина отсутствует в списке?</label>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <input id="newGameName" type="text" maxlength="30" placeholder="Например: Valorant" style="flex:1; min-width:180px;">
+              <button class="btn secondary" type="button" id="add-game-btn">+ Добавить игру</button>
+            </div>
+            <div class="tagline" style="margin:6px 0 0; font-size:12.5px;">Появится во всех списках игр на сайте (расписание, турниры, регистрация).</div>
+          </div>
+          <div class="form-field">
+            <label for="tTeams">Команды (по одной на строке, минимум 2)</label>
+            <textarea id="tTeams" name="tTeams" required placeholder="Team Aurora&#10;Nova Squad&#10;Iron Wolves&#10;Crimson Owls"></textarea>
+          </div>
+          <button class="btn" type="submit">Создать турнир и сетку</button>
+        </form>
+      </div>
+
+      <h2 style="margin-top:36px;">Активные и завершённые турниры</h2>
+      <div id="tournaments-admin-list"></div>
+
+      <h2 style="margin-top:36px;">Рейтинг команд (Эло)</h2>
+      <p class="tagline">
+        Здесь видны все команды, которым хоть раз начислялся Эло. Если из-за опечатки или
+        тестового турнира в списке оказалась лишняя/неверная команда (например «Команда 1»,
+        «Команда 2») — поправь рейтинг вручную или удали её карточку насовсем.
+      </p>
+      <div id="teams-admin-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;"></div>
+      <table class="admin-table" id="teams-admin-table">
+        <thead>
+          <tr>
+            <th>Команда</th>
+            <th>Эло</th>
+            <th>W</th>
+            <th>L</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="teams-admin-rows"></tbody>
+      </table>
+    </section>
+
+    <section class="section container reveal">
+      <span class="eyebrow">Новости</span>
+      <h2 id="news-form-title">Добавить новость</h2>
+      <p class="tagline">
+        Новость сразу появляется на странице «Новости» и в блоке новостей на главной.
+        Чтобы отредактировать существующую новость — нажми «Редактировать» в списке ниже,
+        поправь поля и нажми «Сохранить».
+      </p>
+      <div class="card contact-card" style="max-width:640px;">
+        <form id="news-form">
+          <input type="hidden" id="nId" value="">
+          <div class="form-field">
+            <label for="nTitle">Заголовок</label>
+            <input id="nTitle" name="nTitle" type="text" required maxlength="140" placeholder="Открыта регистрация на летний сезон">
+          </div>
+          <div class="form-field">
+            <label for="nDate">Дата</label>
+            <input id="nDate" name="nDate" type="date" required>
+          </div>
+          <div class="form-field">
+            <label for="nImage">Картинка (ссылка, необязательно)</label>
+            <input id="nImage" name="nImage" type="text" placeholder="assets/images/... или https://...">
+          </div>
+          <div class="form-field">
+            <label for="nExcerpt">Короткое описание (для карточки)</label>
+            <input id="nExcerpt" name="nExcerpt" type="text" maxlength="200" required placeholder="Одно-два предложения для превью">
+          </div>
+          <div class="form-field">
+            <label for="nContent">Полный текст новости</label>
+            <textarea id="nContent" name="nContent" required style="min-height:130px;" placeholder="Полный текст новости"></textarea>
+          </div>
+          <div class="admin-actions" style="margin-top:0;">
+            <button class="btn" type="submit" id="news-submit-btn">Опубликовать</button>
+            <button class="btn secondary" type="button" id="news-cancel-edit" style="display:none;">Отменить редактирование</button>
+          </div>
+        </form>
+      </div>
+
+      <h2 style="margin-top:36px;">Опубликованные новости</h2>
+      <div class="grid cols-3" id="news-admin-list"></div>
+    </section>
+
+    <section class="section container reveal" id="users-admin-section">
+      <span class="eyebrow">Модерация</span>
+      <h2>Аккаунты игроков</h2>
+      <p class="tagline">
+        Список тех, кто завёл профиль на сайте (страница «Аккаунт»). Здесь можно выдать статус
+        модератора (доступ в эту панель для добавления игр и расписания), а также забанить или
+        удалить профиль, если он нарушает <a href="register.html#rules" target="_blank" rel="noopener">правила сайта</a>.
+        Бан скрывает профиль и блокирует вход в личный кабинет — сам аккаунт входа (email) при этом
+        не удаляется, это ограничение Firebase Authentication без платного плана.
+      </p>
+      <div id="users-admin-list" class="grid cols-2"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <span>© 2026 <span data-role="site-name">Infinity Series Tournaments</span></span>
+    <a data-role="footer-email" href="#"></a>
+  </div>
+</footer>
+
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="assets/js/firebase-config.js"></script>
+<script defer src="assets/js/main.js"></script>
+<script defer src="assets/js/tournament-shared.js"></script>
+<script defer src="assets/js/admin-auth.js"></script>
+<script defer src="assets/js/admin.js"></script>
+</body>
+</html>
