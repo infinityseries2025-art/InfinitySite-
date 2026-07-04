@@ -77,11 +77,7 @@ html{ scrollbar-color:var(--color-accent) var(--color-ink); scrollbar-width:thin
 
 /* стеклянная подложка контента поверх фоновой картинки — включена всегда,
    т.к. фон теперь встроен прямо в CSS и не зависит от загрузки отдельного файла */
-.page-surface{
-  background:rgba(28,29,33,0.18);
-  border-radius:24px;
-  padding:8px 0 40px;
-}
+
 
 @keyframes pageFadeIn{
   from{ opacity:0; }
