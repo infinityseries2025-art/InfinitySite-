@@ -41,7 +41,6 @@
   --ease: cubic-bezier(.22,1,.36,1);
 }
 
-*,*::before,*::after{ box-sizing:border-box; }
 html{ scroll-behavior:smooth; }
 body{
   position:relative;
@@ -62,7 +61,7 @@ body{
 
 .navbar, main, .footer{ position:relative; z-index:1; }
 
-::selection{ background:var(--color-accent); color:#1C1D21; }
+
 
 /* фирменный скроллбар вместо системного */
 ::-webkit-scrollbar{ width:11px; height:11px; }
