@@ -548,6 +548,7 @@ function resetNewsForm(){
   newsForm.reset();
   newsIdField.value = '';
   document.getElementById('nImageCurrent').value = '';
+  document.getElementById('nImageUrl').value = '';
   document.getElementById('nImagePreview').innerHTML = '';
   newsFormTitle.textContent = 'Добавить новость';
   newsSubmitBtn.textContent = 'Опубликовать';
@@ -569,6 +570,7 @@ if(newsForm){
     const id = newsIdField.value;
     const fileInput = document.getElementById('nImageFile');
     const file = fileInput.files[0];
+    const imageUrl = document.getElementById('nImageUrl').value.trim();
 
     const data = {
       title: document.getElementById('nTitle').value.trim(),
@@ -584,16 +586,23 @@ if(newsForm){
       alert('Файл слишком большой (максимум 5 МБ). Выбери файл поменьше.');
       return;
     }
+    if(imageUrl && !/^https?:\/\//i.test(imageUrl)){
+      alert('Ссылка на картинку должна начинаться с http:// или https://');
+      return;
+    }
 
     const originalBtnText = newsSubmitBtn.textContent;
     newsSubmitBtn.disabled = true;
 
     try{
-      if(file){
+      if(imageUrl){
+        // если указана ссылка — используем её напрямую, файл в этом случае игнорируется
+        data.image = imageUrl;
+      }else if(file){
         newsSubmitBtn.textContent = 'Загружаю картинку…';
         data.image = await uploadNewsImage(file);
       }else{
-        // без нового файла — оставляем прежнюю картинку (при редактировании) или пусто (новая новость)
+        // ничего нового не указано — оставляем прежнюю картинку (при редактировании) или пусто (новая новость)
         data.image = document.getElementById('nImageCurrent').value || '';
       }
 
@@ -622,7 +631,22 @@ if(document.getElementById('nImageFile')){
     const file = e.target.files[0];
     const preview = document.getElementById('nImagePreview');
     if(file){
+      document.getElementById('nImageUrl').value = '';
       preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Предпросмотр" style="max-width:160px;border-radius:8px;display:block;">`;
+    }else{
+      preview.innerHTML = '';
+    }
+  });
+}
+
+if(document.getElementById('nImageUrl')){
+  document.getElementById('nImageUrl').addEventListener('input', (e) => {
+    const url = e.target.value.trim();
+    const preview = document.getElementById('nImagePreview');
+    const fileInput = document.getElementById('nImageFile');
+    if(url){
+      fileInput.value = '';
+      preview.innerHTML = `<img src="${url}" alt="Предпросмотр" style="max-width:160px;border-radius:8px;display:block;" onerror="this.replaceWith(document.createTextNode('Не удалось загрузить картинку по этой ссылке'));">`;
     }else{
       preview.innerHTML = '';
     }
@@ -644,8 +668,9 @@ if(newsList){
       document.getElementById('nDate').value = n.date || '';
       document.getElementById('nImageCurrent').value = n.image || '';
       document.getElementById('nImageFile').value = '';
+      document.getElementById('nImageUrl').value = '';
       document.getElementById('nImagePreview').innerHTML = n.image
-        ? `<img src="${n.image}" alt="Текущая картинка" style="max-width:160px;border-radius:8px;display:block;"><small style="color:var(--color-ink-soft);">Текущая картинка. Выбери новый файл, чтобы заменить.</small>`
+        ? `<img src="${n.image}" alt="Текущая картинка" style="max-width:160px;border-radius:8px;display:block;"><small style="color:var(--color-ink-soft);">Текущая картинка. Вставь новую ссылку или выбери файл, чтобы заменить.</small>`
         : '';
       document.getElementById('nExcerpt').value = n.excerpt || '';
       document.getElementById('nContent').value = n.content || '';

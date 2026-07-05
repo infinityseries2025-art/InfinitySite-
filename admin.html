@@ -230,7 +230,15 @@
             <input id="nDate" name="nDate" type="date" required>
           </div>
           <div class="form-field">
-            <label for="nImageFile">Картинка (необязательно)</label>
+            <label for="nImageUrl">Картинка по ссылке (необязательно)</label>
+            <input id="nImageUrl" name="nImageUrl" type="url" placeholder="https://i.imgur.com/xxxxx.png">
+            <small style="color:var(--color-ink-soft);display:block;margin-top:4px;">
+              Вставь прямую ссылку на картинку. Ссылки из Discord CDN не подходят — они «протухают».
+              Как получить постоянную ссылку — см. подсказку под формой.
+            </small>
+          </div>
+          <div class="form-field">
+            <label for="nImageFile">Или загрузить файл (необязательно)</label>
             <input id="nImageFile" name="nImageFile" type="file" accept="image/*">
             <input type="hidden" id="nImageCurrent" value="">
             <div id="nImagePreview" style="margin-top:8px;"></div>
@@ -248,6 +256,22 @@
             <button class="btn secondary" type="button" id="news-cancel-edit" style="display:none;">Отменить редактирование</button>
           </div>
         </form>
+      </div>
+
+      <div class="card contact-card" style="max-width:640px;margin-top:16px;">
+        <strong>Где взять постоянную ссылку на картинку?</strong>
+        <p class="tagline" style="margin:8px 0 0;">
+          Ссылка из Discord (cdn.discordapp.com / media.discordapp.net) работает только первое время,
+          потом Discord её отзывает — картинка на сайте пропадёт. Чтобы этого не случилось, залей
+          картинку на отдельный хостинг картинок и вставь ссылку оттуда:
+        </p>
+        <ul style="margin:10px 0 0 18px;padding:0;color:var(--color-ink-soft);">
+          <li><strong>imgur.com</strong> — зайти без регистрации, перетащить файл, справа нажать
+            «Copy link» (или в контекстном меню картинки «Copy image address»). Это и есть прямая ссылка.</li>
+          <li><strong>postimages.org</strong> — загрузить файл, скопировать «Direct link».</li>
+          <li>Можно также загрузить файл прямо в форму выше кнопкой «Или загрузить файл» — тогда
+            картинка сохранится в хранилище сайта и ссылка не протухнет.</li>
+        </ul>
       </div>
 
       <h2 style="margin-top:36px;">Опубликованные новости</h2>
