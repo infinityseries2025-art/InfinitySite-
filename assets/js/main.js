@@ -94,7 +94,7 @@ async function initChrome(config){
   document.title = (document.title ? document.title + ' — ' : '') + (config?.siteName || 'Турнирный сайт');
 
   // фоновая картинка сайта
-  const bgUrl = config?.background || 'assets/images/background.jpg';
+  const bgUrl = config?.background || '';
   const bgOk = await tryImage(bgUrl);
   if(bgOk){
     document.body.style.setProperty('--user-bg-image', `url('${bgUrl}')`);

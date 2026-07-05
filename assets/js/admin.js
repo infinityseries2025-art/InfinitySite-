@@ -547,19 +547,32 @@ function stopNewsListener(){
 function resetNewsForm(){
   newsForm.reset();
   newsIdField.value = '';
+  document.getElementById('nImageCurrent').value = '';
+  document.getElementById('nImagePreview').innerHTML = '';
   newsFormTitle.textContent = 'Добавить новость';
   newsSubmitBtn.textContent = 'Опубликовать';
   newsCancelBtn.style.display = 'none';
+}
+
+// загружает выбранный файл в Firebase Storage и возвращает публичную ссылку
+async function uploadNewsImage(file){
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `news/${Date.now()}_${safeName}`;
+  const ref = storage.ref().child(path);
+  await ref.put(file);
+  return await ref.getDownloadURL();
 }
 
 if(newsForm){
   newsForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = newsIdField.value;
+    const fileInput = document.getElementById('nImageFile');
+    const file = fileInput.files[0];
+
     const data = {
       title: document.getElementById('nTitle').value.trim(),
       date: document.getElementById('nDate').value,
-      image: document.getElementById('nImage').value.trim(),
       excerpt: document.getElementById('nExcerpt').value.trim(),
       content: document.getElementById('nContent').value.trim(),
     };
@@ -567,7 +580,24 @@ if(newsForm){
       alert('Заполни заголовок, дату, короткое описание и текст новости.');
       return;
     }
+    if(file && file.size > 5 * 1024 * 1024){
+      alert('Файл слишком большой (максимум 5 МБ). Выбери файл поменьше.');
+      return;
+    }
+
+    const originalBtnText = newsSubmitBtn.textContent;
+    newsSubmitBtn.disabled = true;
+
     try{
+      if(file){
+        newsSubmitBtn.textContent = 'Загружаю картинку…';
+        data.image = await uploadNewsImage(file);
+      }else{
+        // без нового файла — оставляем прежнюю картинку (при редактировании) или пусто (новая новость)
+        data.image = document.getElementById('nImageCurrent').value || '';
+      }
+
+      newsSubmitBtn.textContent = 'Сохраняю…';
       if(id){
         await db.collection('news').doc(id).update(data);
       }else{
@@ -580,6 +610,21 @@ if(newsForm){
     }catch(err){
       console.error(err);
       alert('Не удалось сохранить новость. Попробуй ещё раз.');
+    }finally{
+      newsSubmitBtn.disabled = false;
+      newsSubmitBtn.textContent = originalBtnText;
+    }
+  });
+}
+
+if(document.getElementById('nImageFile')){
+  document.getElementById('nImageFile').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const preview = document.getElementById('nImagePreview');
+    if(file){
+      preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Предпросмотр" style="max-width:160px;border-radius:8px;display:block;">`;
+    }else{
+      preview.innerHTML = '';
     }
   });
 }
@@ -597,7 +642,11 @@ if(newsList){
       newsIdField.value = n.id;
       document.getElementById('nTitle').value = n.title || '';
       document.getElementById('nDate').value = n.date || '';
-      document.getElementById('nImage').value = n.image || '';
+      document.getElementById('nImageCurrent').value = n.image || '';
+      document.getElementById('nImageFile').value = '';
+      document.getElementById('nImagePreview').innerHTML = n.image
+        ? `<img src="${n.image}" alt="Текущая картинка" style="max-width:160px;border-radius:8px;display:block;"><small style="color:var(--color-ink-soft);">Текущая картинка. Выбери новый файл, чтобы заменить.</small>`
+        : '';
       document.getElementById('nExcerpt').value = n.excerpt || '';
       document.getElementById('nContent').value = n.content || '';
       newsFormTitle.textContent = 'Редактировать новость';

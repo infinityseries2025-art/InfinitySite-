@@ -29,3 +29,4 @@ const ADMIN_EMAIL = "infinityseries2025@gmail.com";
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
+const storage = firebase.storage();

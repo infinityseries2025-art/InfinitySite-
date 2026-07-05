@@ -230,8 +230,10 @@
             <input id="nDate" name="nDate" type="date" required>
           </div>
           <div class="form-field">
-            <label for="nImage">Картинка (ссылка, необязательно)</label>
-            <input id="nImage" name="nImage" type="text" placeholder="assets/images/... или https://...">
+            <label for="nImageFile">Картинка (необязательно)</label>
+            <input id="nImageFile" name="nImageFile" type="file" accept="image/*">
+            <input type="hidden" id="nImageCurrent" value="">
+            <div id="nImagePreview" style="margin-top:8px;"></div>
           </div>
           <div class="form-field">
             <label for="nExcerpt">Короткое описание (для карточки)</label>
@@ -278,6 +280,7 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script defer src="assets/js/firebase-config.js"></script>
 <script defer src="assets/js/main.js"></script>
 <script defer src="assets/js/tournament-shared.js"></script>
