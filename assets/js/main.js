@@ -335,6 +335,7 @@ async function renderContactsPage(config){
     c.vk ? ['🔵', 'VK', `<a href="${c.vk}" target="_blank" rel="noopener">${c.vk}</a>`] : null,
     c.youtube ? ['▶️', 'YouTube', `<a href="${c.youtube}" target="_blank" rel="noopener">${c.youtube}</a>`] : null,
     c.twitch ? ['🟣', 'Twitch', `<a href="${c.twitch}" target="_blank" rel="noopener">${c.twitch}</a>`] : null,
+    c.faceit ? ['🏆', 'Faceit турнир', `<a href="${c.faceit}" target="_blank" rel="noopener">${c.faceit}</a>`] : null,
   ].filter(Boolean);
   wrap.innerHTML = rows.map(([ic,label,val]) => `
     <div class="contact-row">

@@ -50,11 +50,59 @@ if(viewedUid){
         s.href ? `<a href="${s.href}" target="_blank" rel="noopener">${s.label}</a>`
                : `<span class="profile-view-socials-item">${s.label}: ${s.text}</span>`
       ).join('');
+
+      loadPlayerTeamBadge(viewedUid);
     }catch(err){
       console.error(err);
       nickEl.textContent = 'Не удалось загрузить профиль';
     }
   })();
+}
+
+/* ---------------------------------------------------------
+   БЕЙДЖ КОМАНДЫ на публичном профиле — ищем среди одобренных
+   заявок ту, где этот uid стоит капитаном или в составе, и
+   показываем плашку с логотипом/названием команды и ссылкой,
+   которая открывает кабинет именно этой команды на «Участники».
+--------------------------------------------------------- */
+function normalizeRosterPV(roster){
+  if(Array.isArray(roster)) return roster;
+  if(typeof roster === 'string'){
+    return roster.split(/\n|,/).map(s => s.trim()).filter(Boolean).map(nickname => ({ nickname, uid: null }));
+  }
+  return [];
+}
+
+async function loadPlayerTeamBadge(uid){
+  const wrap = document.getElementById('pv-team-wrap');
+  if(!wrap) return;
+  try{
+    const snap = await db.collection('teamApplications').where('status', '==', 'approved').get();
+    let team = null;
+    snap.forEach(doc => {
+      if(team) return;
+      const d = doc.data();
+      const roster = normalizeRosterPV(d.roster);
+      if(d.captainUid === uid || roster.some(p => p.uid === uid)){
+        team = Object.assign({ id: doc.id }, d);
+      }
+    });
+    if(!team){ wrap.innerHTML = ''; return; }
+
+    const initials = (team.teamName || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    wrap.innerHTML = '' +
+      '<a class="pv-team-badge" href="participants.html?team=' + encodeURIComponent(team.id) + '">' +
+        '<span class="pv-team-badge-avatar">' +
+          (team.teamAvatar ? ('<img src="' + team.teamAvatar + '" alt="' + team.teamName + '">') : initials) +
+        '</span>' +
+        '<span class="pv-team-badge-text">' +
+          '<span class="pv-team-badge-label">Зарегистрирован в команде</span>' +
+          '<span class="pv-team-badge-name">' + team.teamName + ' →</span>' +
+        '</span>' +
+      '</a>';
+  }catch(err){
+    console.error('Не удалось загрузить команду игрока', err);
+  }
 }
 
 /* ---------------------------------------------------------

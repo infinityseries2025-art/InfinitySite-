@@ -299,7 +299,14 @@ async function openCabinet(teamId){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
-  renderParticipants();
+  renderParticipants().then(function(){
+    // Если пришли по ссылке из профиля игрока (account.html?u=...) с параметром
+    // ?team=ID — сразу открываем кабинет этой команды.
+    const wantedTeamId = new URLSearchParams(window.location.search).get('team');
+    if(wantedTeamId && teamsCacheById.has(wantedTeamId)){
+      openCabinet(wantedTeamId);
+    }
+  });
 
   const listWrap = document.querySelector('[data-role="participants-list"]');
   if(listWrap){

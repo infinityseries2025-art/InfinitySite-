@@ -501,6 +501,27 @@ if(teamsRowsBody){
   });
 }
 
+const teamsClearAllBtn = document.getElementById('teams-clear-all');
+if(teamsClearAllBtn){
+  teamsClearAllBtn.addEventListener('click', async () => {
+    if(!teamsActiveGame){ alert('Нет активной игры с рейтингом.'); return; }
+    const rows = teamsCache.filter(x => x.game === teamsActiveGame);
+    if(!rows.length){ alert('Для этой игры рейтинг уже пуст.'); return; }
+    if(!confirm(`Удалить ВСЕ команды (${rows.length}) из рейтинга по игре «${teamsActiveGame}» насовсем?\nЭто не отменит результаты уже сыгранных турниров — уберутся только карточки рейтинга.`)) return;
+    teamsClearAllBtn.disabled = true;
+    try{
+      const batch = db.batch();
+      rows.forEach(team => batch.delete(db.collection('teams').doc(team.id)));
+      await batch.commit();
+    }catch(err){
+      console.error(err);
+      alert('Не удалось очистить рейтинг. Попробуй ещё раз.');
+    }finally{
+      teamsClearAllBtn.disabled = false;
+    }
+  });
+}
+
 /* ---------------------- НОВОСТИ ---------------------- */
 const newsForm = document.getElementById('news-form');
 const newsList = document.getElementById('news-admin-list');
@@ -804,11 +825,13 @@ auth.onAuthStateChanged(async (user) => {
     if(tGameSelect) tGameSelect.innerHTML = gameOptionsHTML(gamesListCache[0]);
     startScheduleListener();
     startTournamentsListener();
+    startTeamsListener();
     startNewsListener();
     if(isAdminUser(user)) startUsersListener();
   }else{
     stopScheduleListener();
     stopTournamentsListener();
+    stopTeamsListener();
     stopNewsListener();
     stopUsersListener();
   }
