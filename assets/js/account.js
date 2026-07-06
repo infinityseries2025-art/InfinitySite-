@@ -305,6 +305,91 @@ auth.onAuthStateChanged(async (user) => {
   cabinetSection.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
   cabinetEmail.textContent = user.email || '—';
   loadProfile(user.uid);
+  loadApplicationStatus(user.uid);
 });
+
+/* ---------------------------------------------------------
+   СТАТУС ЗАЯВКИ КОМАНДЫ — ищем среди всех заявок ту, где этот
+   аккаунт указан как капитан или игрок состава (по uid, который
+   register.js проставляет по совпадению ника с зарегистрированным
+   профилем). Показываем статус и снимаем подсветку кнопки «Аккаунт»
+   в шапке (см. checkNavAlert в main.js), как только человек увидел
+   свою одобренную заявку здесь.
+--------------------------------------------------------- */
+function normalizeRosterAcc(roster){
+  if(Array.isArray(roster)) return roster;
+  if(typeof roster === 'string'){
+    return roster.split(/\n|,/).map(s => s.trim()).filter(Boolean).map(nickname => ({ nickname, uid: null }));
+  }
+  return [];
+}
+
+const appStatusIcons = { pending: '⏳', approved: '✅', rejected: '✕' };
+const appStatusTitles = {
+  pending: 'На модерации',
+  approved: 'Команда одобрена!',
+  rejected: 'Заявка отклонена',
+};
+
+function applicationStatusHTML(app){
+  const icon = appStatusIcons[app.status] || '•';
+  const title = appStatusTitles[app.status] || app.status;
+  let text = '';
+  if(app.status === 'pending'){
+    text = 'Заявка команды «' + app.teamName + '» отправлена и ожидает решения организатора. Как только модерация пройдёт, здесь и в шапке сайта (кнопка «Аккаунт») появится уведомление.';
+  }else if(app.status === 'approved'){
+    text = 'Команда «' + app.teamName + '» прошла модерацию и появилась в разделе «Участники». Открой её карточку там — как игрок состава ты увидишь ссылку на участие в турнире Faceit и сможешь писать сообщения от лица команды.';
+  }else if(app.status === 'rejected'){
+    text = 'Заявка команды «' + app.teamName + '» была отклонена организатором. Если это неожиданно — напиши в «Контакты», чтобы уточнить причину, или подай новую заявку.';
+  }
+  const link = app.status === 'approved'
+    ? '<div style="margin-top:10px;"><a class="btn secondary small" href="participants.html">Открыть «Участники» →</a></div>'
+    : '';
+  return '' +
+    '<div class="status-banner ' + app.status + '">' +
+      '<div class="ic">' + icon + '</div>' +
+      '<div>' +
+        '<h4>' + title + '</h4>' +
+        '<p>' + text + '</p>' +
+        link +
+      '</div>' +
+    '</div>';
+}
+
+async function loadApplicationStatus(uid){
+  const wrap = document.getElementById('application-status-wrap');
+  if(!wrap) return;
+  try{
+    const snap = await db.collection('teamApplications').get();
+    const mine = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      const roster = normalizeRosterAcc(d.roster);
+      const isMember = d.captainUid === uid || roster.some(p => p.uid === uid);
+      if(isMember) mine.push(Object.assign({ id: doc.id }, d));
+    });
+
+    if(!mine.length){
+      wrap.innerHTML = '';
+      return;
+    }
+
+    mine.sort((a, b) => {
+      const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+      const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
+
+    wrap.innerHTML = mine.map(applicationStatusHTML).join('');
+
+    mine.forEach(app => {
+      if(app.status === 'approved'){
+        try{ localStorage.setItem('ist_seen_approved_' + app.id, '1'); }catch(e){}
+      }
+    });
+  }catch(err){
+    console.error('Не удалось загрузить статус заявки', err);
+  }
+}
 
 } // конец блока "если это не публичный просмотр профиля по ?u="

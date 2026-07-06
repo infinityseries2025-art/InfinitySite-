@@ -103,15 +103,16 @@ logoutBtn.addEventListener('click', () => auth.signOut());
 
 const statusLabels = { pending:'На модерации', approved:'Одобрена', rejected:'Отклонена' };
 
-// Состав хранится как массив {nickname, uid, elo}. У заявок, отправленных
-// до этого обновления, роcтер мог остаться строкой — поддерживаем оба формата.
-function rosterToText(roster){
+// Состав хранится как массив {nickname, uid, elo, faceit}. У заявок, отправленных
+// до этого обновления, ростер мог остаться строкой — поддерживаем оба формата.
+function rosterToHTML(roster){
   if(Array.isArray(roster)){
     return roster.map(p => {
       if(!p || !p.nickname) return '';
       const linkMark = p.uid ? ' 🔗' : '';
       const eloMark = p.elo ? ` (эло ${p.elo})` : '';
-      return p.nickname + linkMark + eloMark;
+      const faceitMark = p.faceit ? ` — <a href="${p.faceit}" target="_blank" rel="noopener">Faceit ↗</a>` : '';
+      return `${p.nickname}${linkMark}${eloMark}${faceitMark}`;
     }).filter(Boolean).join(', ');
   }
   if(typeof roster === 'string') return roster.replace(/\n/g, ', ');
@@ -121,7 +122,7 @@ function rosterToText(roster){
 function appCardHTML(doc){
   const d = doc.data();
   const id = doc.id;
-  const roster = rosterToText(d.roster);
+  const roster = rosterToHTML(d.roster);
   const initials = (d.teamName || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   return `
   <div class="card app-card" data-id="${id}">
@@ -146,6 +147,12 @@ function appCardHTML(doc){
       <button class="reject" data-action="rejected" ${d.status==='rejected' ? 'disabled' : ''}>Отклонить</button>
       <button class="delete" data-action="delete">Удалить</button>
     </div>
+    ${d.status === 'approved' ? `
+    <div class="app-faceit-row" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+      <input type="url" class="app-faceit-input" placeholder="Ссылка на участие в турнире Faceit для этой команды" value="${d.faceitInvite || ''}" style="flex:1; min-width:220px; padding:8px 10px; border-radius:8px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-size:13px;">
+      <button type="button" class="app-faceit-save" style="padding:8px 14px; border-radius:8px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-size:12.5px; cursor:pointer;">Сохранить ссылку</button>
+    </div>
+    <div style="font-size:11.5px; color:var(--color-ink-soft);">Эта ссылка появится у участников команды в их кабинете (страница «Участники» → клик по карточке команды).</div>` : ''}
   </div>`;
 }
 
@@ -166,6 +173,27 @@ function startApplicationsListener(){
 }
 
 appsList.addEventListener('click', async (e) => {
+  const saveFaceitBtn = e.target.closest('.app-faceit-save');
+  if(saveFaceitBtn){
+    const card = saveFaceitBtn.closest('.app-card');
+    const id = card.getAttribute('data-id');
+    const input = card.querySelector('.app-faceit-input');
+    const link = input.value.trim();
+    saveFaceitBtn.disabled = true;
+    const original = saveFaceitBtn.textContent;
+    saveFaceitBtn.textContent = 'Сохраняем…';
+    try{
+      await db.collection('teamApplications').doc(id).update({ faceitInvite: link });
+      saveFaceitBtn.textContent = 'Сохранено ✓';
+      setTimeout(() => { saveFaceitBtn.textContent = original; saveFaceitBtn.disabled = false; }, 1500);
+    }catch(err){
+      console.error(err);
+      alert('Не удалось сохранить ссылку. Попробуй ещё раз.');
+      saveFaceitBtn.textContent = original;
+      saveFaceitBtn.disabled = false;
+    }
+    return;
+  }
   const btn = e.target.closest('button[data-action]');
   if(!btn) return;
   const card = btn.closest('.app-card');

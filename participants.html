@@ -43,10 +43,22 @@
   </section>
 </main>
 
+<!-- КАБИНЕТ КОМАНДЫ: открывается по клику на карточку в списке выше.
+     Участникам состава (по совпадению аккаунта сайта — вход на account.html)
+     внутри доступна ссылка на участие в турнире Faceit и лента сообщений
+     от лица команды. Остальным виден только базовый состав. -->
+<div class="cabinet-overlay" id="cabinet-overlay">
+  <div class="cabinet-modal" id="cabinet-modal" role="dialog" aria-modal="true">
+    <button type="button" class="cabinet-close" id="cabinet-close" aria-label="Закрыть">✕</button>
+    <div id="cabinet-body">Загрузка…</div>
+  </div>
+</div>
+
 <footer class="footer">
   <div class="container">
     <span>© 2026 <span data-role="site-name">Infinity Series Tournaments</span></span>
     <a data-role="footer-email" href="#"></a>
+    <a class="footer-faceit-btn" href="https://www.faceit.com/ru/organizers/a6bb0df2-dc1e-46ce-8d1d-ac4a4af497b9/INFINITY%20Series%20Tournments/settings" target="_blank" rel="noopener">Faceit турнир</a>
   </div>
 </footer>
 

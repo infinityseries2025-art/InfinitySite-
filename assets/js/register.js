@@ -14,7 +14,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('register-form');
   const statusBox = document.getElementById('register-status');
   const submitBtn = document.getElementById('register-submit');
+  const formCard = document.getElementById('register-form-card');
+  const pendingCard = document.getElementById('register-pending');
+  const pendingText = document.getElementById('register-pending-text');
+  const registerAnotherBtn = document.getElementById('register-another');
   if(!form) return;
+
+  if(registerAnotherBtn){
+    registerAnotherBtn.addEventListener('click', () => {
+      pendingCard.style.display = 'none';
+      formCard.style.display = 'block';
+      formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function showPendingScreen(avgElo){
+    if(!pendingCard || !formCard) return;
+    if(pendingText){
+      pendingText.textContent = avgElo
+        ? ('Организатор проверит состав и данные команды (средний эло состава: ' + avgElo + ') и одобрит или отклонит заявку. Карточка команды появится в разделе «Участники» сразу после одобрения.')
+        : 'Организатор проверит состав и данные команды и одобрит или отклонит заявку. Карточка команды появится в разделе «Участники» сразу после одобрения.';
+    }
+    formCard.style.display = 'none';
+    pendingCard.style.display = 'block';
+    pendingCard.classList.add('reveal', 'in-view');
+    pendingCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   /* -----------------------------------------------------
      Подсказка ников: подгружаем зарегистрированных пользователей
@@ -161,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRosterAvgElo();
   }
 
-  function addRosterRow(value = '', eloValue = ''){
+  function addRosterRow(value = '', eloValue = '', faceitValue = ''){
     rosterCounter += 1;
     const row = document.createElement('div');
     row.className = 'roster-row';
@@ -169,6 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="form-field">
         <input type="text" class="roster-nick" list="known-nicknames" autocomplete="off"
                maxlength="40" placeholder="Ник игрока ${rosterCounter}" value="${value}">
+      </div>
+      <div class="form-field" style="max-width:220px;">
+        <input type="url" class="roster-faceit" maxlength="200"
+               placeholder="Ссылка на профиль Faceit" value="${faceitValue}">
       </div>
       <div class="form-field" style="max-width:140px;">
         <input type="number" class="roster-elo" min="1" max="10000" step="1"
@@ -196,9 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
       .map(row => ({
         nickname: row.querySelector('.roster-nick').value.trim(),
         elo: Number(row.querySelector('.roster-elo').value) || null,
+        faceit: row.querySelector('.roster-faceit').value.trim(),
       }))
       .filter(p => p.nickname)
-      .map(p => ({ nickname: p.nickname, uid: findUidByNickname(p.nickname), elo: p.elo }));
+      .map(p => ({ nickname: p.nickname, uid: findUidByNickname(p.nickname), elo: p.elo, faceit: p.faceit }));
   }
 
   const pageLoadedAt = Date.now();
@@ -268,6 +298,18 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    if(roster.some(p => !p.faceit)){
+      statusBox.textContent = 'Укажи ссылку на профиль Faceit для каждого игрока состава.';
+      statusBox.className = 'form-msg error';
+      return;
+    }
+
+    if(roster.some(p => !/^https?:\/\/(www\.)?faceit\.com\//i.test(p.faceit))){
+      statusBox.textContent = 'Ссылка на профиль Faceit должна быть настоящей ссылкой вида https://www.faceit.com/... для каждого игрока.';
+      statusBox.className = 'form-msg error';
+      return;
+    }
+
     const avgElo = roster.length
       ? Math.round(roster.reduce((sum, p) => sum + (p.elo || 0), 0) / roster.length)
       : null;
@@ -305,10 +347,9 @@ document.addEventListener('DOMContentLoaded', () => {
       rosterRows.innerHTML = '';
       rosterCounter = 0;
       addRosterRow(); addRosterRow(); addRosterRow();
-      statusBox.textContent = avgElo
-        ? `Заявка отправлена! Средний эло состава: ${avgElo}. Заявка появится на сайте после проверки организатором.`
-        : 'Заявка отправлена! Она появится на сайте после проверки организатором.';
-      statusBox.className = 'form-msg success';
+      statusBox.textContent = '';
+      statusBox.className = '';
+      showPendingScreen(avgElo);
     }catch(err){
       console.error(err);
       statusBox.textContent = 'Не получилось отправить заявку. Попробуй ещё раз чуть позже.';

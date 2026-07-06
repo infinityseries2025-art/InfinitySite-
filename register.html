@@ -63,7 +63,19 @@
       </p>
     </div>
 
-    <div class="card contact-card" style="max-width:640px; margin-top:20px;">
+    <!-- Показывается вместо формы сразу после успешной отправки заявки -->
+    <div class="card contact-card register-pending" id="register-pending" style="max-width:640px; margin-top:20px; display:none;">
+      <div class="ic">⏳</div>
+      <h3>Заявка отправлена! Ожидайте ответа модерации</h3>
+      <p id="register-pending-text">Организатор проверит состав и данные команды и одобрит или отклонит заявку. Карточка команды появится в разделе «Участники» сразу после одобрения.</p>
+      <p style="font-size:13px;">Зайди в свой аккаунт — там будет виден статус заявки, а когда её одобрят, кнопка «Аккаунт» в шапке сайта подсветится, чтобы ты не пропустил(а) это.</p>
+      <div class="btn-row">
+        <a class="btn small" href="account.html">Перейти в аккаунт</a>
+        <button type="button" class="btn secondary small" id="register-another">Подать ещё одну заявку</button>
+      </div>
+    </div>
+
+    <div class="card contact-card" style="max-width:640px; margin-top:20px;" id="register-form-card">
       <form id="register-form">
         <div class="form-field">
           <label>Аватар команды (необязательно)</label>
@@ -101,10 +113,11 @@
         <div class="form-field">
           <label>Состав команды *</label>
           <div class="roster-hint">
-            Впиши ник каждого игрока и его текущее эло(в том числе и капитана) на Faceit. Если ник совпадает с зарегистрированным
-            на сайте аккаунтом, у которого в профиле указано эло — оно подставится само и в заявке появится
-            ссылка на профиль игрока. Если аккаунта нет — впиши эло вручную: капитан отвечает за то, что
-            эти цифры соответствуют реальному Faceit-профилю игрока.
+            Впиши ник, ссылку на профиль Faceit и текущее эло каждого игрока (в том числе и капитана).
+            Если ник совпадает с зарегистрированным на сайте аккаунтом, у которого в профиле указано эло —
+            оно подставится само и в заявке появится ссылка на профиль игрока на сайте. Ссылку на Faceit
+            всё равно нужно вписать вручную для каждого игрока — капитан отвечает за то, что ник, ссылка
+            и эло соответствуют реальному Faceit-профилю игрока.
           </div>
           <div id="roster-rows"></div>
           <button type="button" class="roster-add" id="roster-add">+ Добавить игрока</button>
@@ -150,6 +163,7 @@
   <div class="container">
     <span>© 2026 <span data-role="site-name">Infinity Series Tournaments</span></span>
     <a data-role="footer-email" href="#"></a>
+    <a class="footer-faceit-btn" href="https://www.faceit.com/ru/organizers/a6bb0df2-dc1e-46ce-8d1d-ac4a4af497b9/INFINITY%20Series%20Tournments/settings" target="_blank" rel="noopener">Faceit турнир</a>
   </div>
 </footer>
 

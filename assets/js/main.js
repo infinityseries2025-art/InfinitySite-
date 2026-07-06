@@ -343,6 +343,50 @@ async function renderContactsPage(config){
     </div>`).join('');
 }
 
+/* ---------- подсветка кнопки «Аккаунт»: сигнал об одобренной заявке ----------
+   Работает на всех страницах, где подключён Firebase (везде, кроме
+   contacts.html и team.html — там его просто нет, поэтому функция
+   безопасно ничего не делает). Как только человек открывает свой
+   кабинет и видит статус заявки (см. loadApplicationStatus в account.js),
+   она помечает одобренные заявки как «увиденные» в localStorage —
+   и подсветка гаснет на всех страницах при следующей загрузке. */
+function normalizeRosterNav(roster){
+  if(Array.isArray(roster)) return roster;
+  if(typeof roster === 'string'){
+    return roster.split(/\n|,/).map(s => s.trim()).filter(Boolean).map(nickname => ({ nickname, uid: null }));
+  }
+  return [];
+}
+
+function checkNavAlert(){
+  if(typeof auth === 'undefined' || typeof db === 'undefined') return;
+  const accountLink = document.querySelector('.nav-links a[data-page="account"]');
+  if(!accountLink) return;
+
+  auth.onAuthStateChanged(async (user) => {
+    accountLink.classList.remove('nav-alert');
+    if(!user) return;
+    try{
+      const snap = await db.collection('teamApplications')
+        .where('status', '==', 'approved')
+        .get();
+      let hasUnseen = false;
+      snap.forEach(doc => {
+        const d = doc.data();
+        const roster = normalizeRosterNav(d.roster);
+        const isMember = d.captainUid === user.uid || roster.some(p => p.uid === user.uid);
+        if(!isMember) return;
+        let seen = false;
+        try{ seen = localStorage.getItem('ist_seen_approved_' + doc.id) === '1'; }catch(e){}
+        if(!seen) hasUnseen = true;
+      });
+      if(hasUnseen) accountLink.classList.add('nav-alert');
+    }catch(err){
+      console.warn('Не удалось проверить статус заявок для подсветки кнопки «Аккаунт»', err);
+    }
+  });
+}
+
 /* ---------- инициализация страницы ---------- */
 document.addEventListener('DOMContentLoaded', async () => {
   const config = await loadJSON('config');
@@ -355,6 +399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderContactsPage(config),
   ]);
   initScrollReveal();
+  checkNavAlert();
 
   const form = document.querySelector('#contact-form');
   if(form){

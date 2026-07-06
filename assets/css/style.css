@@ -609,6 +609,158 @@ p{ line-height:1.65; margin:0 0 1em; }
 }
 .team-card .socials a:hover{ transform:translateY(-3px); background:var(--color-accent); color:#1C1D21; }
 
+/* --- карточка команды-участника: кликабельна, открывает кабинет команды --- */
+.participant-card{ cursor:pointer; }
+.participant-card:hover{ transform:translateY(-4px); }
+.participant-open-hint{
+  display:flex; align-items:center; gap:6px;
+  margin-top:12px; font-size:12px; font-weight:700;
+  color:var(--color-accent); letter-spacing:.02em;
+}
+.participant-open-hint svg{ width:14px; height:14px; flex:none; transition:transform .25s var(--ease); }
+.participant-card:hover .participant-open-hint svg{ transform:translateX(3px); }
+
+/* --- модальное окно «Кабинет команды» --- */
+.cabinet-overlay{
+  position:fixed; inset:0; z-index:60;
+  display:none;
+  align-items:flex-start; justify-content:center;
+  padding:70px 16px 40px;
+  overflow-y:auto;
+  background:rgba(15,15,17,0.72);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  animation:fadeInUp .25s var(--ease);
+}
+.cabinet-overlay.open{ display:flex; }
+.cabinet-modal{
+  position:relative;
+  width:100%; max-width:620px;
+  background:var(--color-surface);
+  border:1px solid var(--color-primary-line);
+  border-radius:22px;
+  padding:28px 26px 26px;
+  box-shadow:var(--shadow-soft);
+  animation:popIn .3s var(--ease);
+}
+.cabinet-close{
+  position:absolute; top:16px; right:16px;
+  width:34px; height:34px; border-radius:50%;
+  border:1px solid var(--color-primary-line);
+  background:var(--color-surface-alt); color:var(--color-text);
+  font-size:16px; line-height:1; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .2s ease;
+}
+.cabinet-close:hover{ border-color:var(--color-accent); color:var(--color-accent); transform:rotate(90deg); }
+.cabinet-head{ display:flex; align-items:center; gap:14px; margin-bottom:6px; padding-right:36px; }
+.cabinet-head h2{ margin:0; font-size:20px; }
+.cabinet-status-line{ font-size:13px; color:var(--color-ink-soft); margin-bottom:18px; }
+.cabinet-section-title{
+  font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--color-accent); margin:20px 0 10px;
+}
+.cabinet-locked{
+  padding:16px 18px; border-radius:14px;
+  background:var(--color-surface-alt);
+  border:1px dashed var(--color-primary-line);
+  font-size:14px; color:var(--color-ink-soft); line-height:1.55;
+}
+.cabinet-locked a{ color:var(--color-accent); font-weight:700; }
+.cabinet-faceit-card{
+  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  padding:16px 18px; border-radius:14px; margin-bottom:6px;
+  background:linear-gradient(120deg, rgba(255,172,188,0.14), rgba(255,172,188,0.03));
+  border:1px solid var(--color-primary-line);
+}
+.cabinet-faceit-card p{ margin:0 0 2px; font-size:13.5px; color:var(--color-ink-soft); }
+.cabinet-faceit-card strong{ font-size:15px; }
+.cabinet-guide{
+  font-size:12.5px; color:var(--color-ink-soft); line-height:1.55;
+  padding:12px 14px; border-radius:12px; background:var(--color-surface-alt);
+  margin-bottom:14px;
+}
+.cabinet-guide b{ color:var(--color-text); }
+
+/* лента сообщений команды */
+.cabinet-feed{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+.cabinet-post{
+  display:flex; gap:10px; padding:12px 14px; border-radius:14px;
+  background:var(--color-surface-alt); border:1px solid var(--color-primary-line);
+  animation:fadeInUp .3s var(--ease);
+}
+.cabinet-post-logo{
+  width:32px; height:32px; border-radius:50%; flex:none; overflow:hidden;
+  background:var(--color-primary-soft); display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:800; color:var(--color-accent);
+}
+.cabinet-post-logo img{ width:100%; height:100%; object-fit:cover; }
+.cabinet-post-body{ flex:1; min-width:0; }
+.cabinet-post-meta{ font-size:12px; color:var(--color-ink-soft); margin-bottom:3px; }
+.cabinet-post-meta b{ color:var(--color-accent); font-weight:800; }
+.cabinet-post-text{ font-size:14px; line-height:1.5; word-break:break-word; white-space:pre-wrap; }
+.cabinet-post-form{ display:flex; flex-direction:column; gap:8px; }
+.cabinet-post-form textarea{
+  width:100%; min-height:70px; resize:vertical; padding:10px 12px;
+  border-radius:10px; border:1px solid var(--color-primary-line);
+  background:var(--color-surface-alt); color:var(--color-text);
+  font-family:var(--font-body); font-size:14px;
+}
+.cabinet-post-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.cabinet-post-count{ font-size:11.5px; color:var(--color-ink-soft); }
+
+/* --- подсветка кнопки «Аккаунт»: сигнал, что заявку одобрили --- */
+.nav-links a.nav-alert{ position:relative; color:var(--color-accent); }
+.nav-links a.nav-alert::before{
+  content:'';
+  position:absolute; top:2px; right:2px;
+  width:8px; height:8px; border-radius:50%;
+  background:var(--color-accent);
+  box-shadow:0 0 0 0 rgba(255,172,188,0.6);
+  animation:navAlertPulse 1.6s ease-out infinite;
+}
+@keyframes navAlertPulse{
+  0%{ box-shadow:0 0 0 0 rgba(255,172,188,0.55); }
+  70%{ box-shadow:0 0 0 8px rgba(255,172,188,0); }
+  100%{ box-shadow:0 0 0 0 rgba(255,172,188,0); }
+}
+
+/* --- статус заявки на страницах регистрации/аккаунта --- */
+.status-banner{
+  display:flex; gap:14px; align-items:flex-start;
+  padding:18px 20px; border-radius:16px; margin-bottom:20px;
+  border:1px solid var(--color-primary-line); background:var(--color-surface-alt);
+}
+.status-banner .ic{
+  width:38px; height:38px; border-radius:50%; flex:none;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--color-primary-soft); font-size:18px;
+}
+.status-banner.pending .ic{ animation:spin 2.4s linear infinite; }
+.status-banner.approved{ border-color:rgba(140,255,170,0.4); background:rgba(140,255,170,0.08); }
+.status-banner.approved .ic{ background:rgba(140,255,170,0.18); }
+.status-banner.rejected{ border-color:rgba(255,92,108,0.4); background:rgba(255,92,108,0.08); }
+.status-banner.rejected .ic{ background:rgba(255,92,108,0.18); }
+.status-banner h4{ margin:0 0 4px; font-size:15px; }
+.status-banner p{ margin:0; font-size:13.5px; color:var(--color-ink-soft); line-height:1.5; }
+@keyframes spin{ from{ transform:rotate(0); } to{ transform:rotate(360deg); } }
+
+/* --- панель ожидания после отправки заявки на регистрацию --- */
+.register-pending{ text-align:center; padding:36px 20px; }
+.register-pending .ic{
+  width:64px; height:64px; margin:0 auto 18px; border-radius:50%;
+  background:var(--color-primary-soft); color:var(--color-accent);
+  display:flex; align-items:center; justify-content:center; font-size:28px;
+  animation:pulseGlow 2.6s ease-in-out infinite;
+}
+.register-pending h3{ margin-bottom:8px; }
+.register-pending p{ color:var(--color-ink-soft); font-size:14px; line-height:1.6; max-width:440px; margin:0 auto 18px; }
+.register-pending .btn-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+
+/* --- варианты кнопки .btn — используются в кабинете команды, статусах заявки и т.д. --- */
+.btn.secondary{ background:var(--color-surface); color:var(--color-accent-deep); border:1px solid var(--color-primary-line); }
+.btn.secondary:hover{ background:var(--color-primary-soft); box-shadow:none; }
+.btn.small{ padding:8px 16px; font-size:13px; }
+
 /* --- contacts --- */
 .contact-grid{
   display:grid;
@@ -695,6 +847,11 @@ p{ line-height:1.65; margin:0 0 1em; }
   transition:all .2s ease;
 }
 .roster-row .roster-remove:hover{ border-color:#FF5C6C; color:#FF5C6C; }
+@media (max-width:600px){
+  .roster-row{ flex-wrap:wrap; }
+  .roster-row .form-field{ flex:1 1 100%; max-width:100% !important; }
+  .roster-row .roster-remove{ margin-left:auto; }
+}
 .roster-add{
   background:none; border:1px dashed var(--color-primary-line); border-radius:10px;
   padding:10px 14px; color:var(--color-accent); font-weight:700; font-size:13px;
@@ -714,6 +871,11 @@ a.roster-pill{ color:var(--color-text); text-decoration:none; transition:all .2s
 a.roster-pill:hover{ background:var(--color-accent); color:#1C1D21; border-color:var(--color-accent); transform:translateY(-2px); }
 .roster-pill .link-dot{ width:6px; height:6px; border-radius:50%; background:var(--color-accent); flex:none; }
 a.roster-pill:hover .link-dot{ background:#1C1D21; }
+a.roster-faceit-link{
+  background:transparent; border-color:var(--color-accent); color:var(--color-accent);
+  font-weight:700; margin-left:2px;
+}
+a.roster-faceit-link:hover{ background:var(--color-accent); color:#1C1D21; }
 
 /* --- публичный профиль игрока (account.html?u=...) --- */
 .profile-view-head{ display:flex; align-items:center; gap:18px; margin-bottom:6px; flex-wrap:wrap; }
@@ -780,6 +942,19 @@ a.roster-pill:hover .link-dot{ background:#1C1D21; }
 .footer a{ color:var(--color-text); transition:color .2s ease; }
 .footer a:hover{ color:var(--color-accent); }
 .footer .socials{ display:flex; gap:14px; }
+.footer-faceit-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 16px;
+  border-radius:999px;
+  background:var(--color-accent);
+  color:#151519 !important;
+  font-weight:700;
+  font-size:13px;
+  white-space:nowrap;
+}
+.footer-faceit-btn:hover{ background:var(--color-accent-deep); color:#151519 !important; }
 
 .empty-state{
   padding:40px 20px;
