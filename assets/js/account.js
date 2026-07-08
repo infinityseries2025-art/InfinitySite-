@@ -414,14 +414,48 @@ async function loadApplicationStatus(uid){
   const wrap = document.getElementById('application-status-wrap');
   if(!wrap) return;
   try{
+    // Свой ник нужен для самопочинки привязки ниже: если аккаунт был создан
+    // ПОСЛЕ подачи заявки, register.js не мог сопоставить его по нику в тот
+    // момент, и uid в составе/у капитана остался пустым.
+    let myNickname = '';
+    try{
+      const meSnap = await db.collection('users').doc(uid).get();
+      myNickname = meSnap.exists ? (meSnap.data().nickname || '').trim() : '';
+    }catch(e){ console.warn('Не удалось прочитать свой ник для самопочинки привязки', e); }
+    const myNickLower = myNickname.toLowerCase();
+
     const snap = await db.collection('teamApplications').get();
     const mine = [];
-    snap.forEach(doc => {
+    for(const doc of snap.docs){
       const d = doc.data();
       const roster = normalizeRosterAcc(d.roster);
-      const isMember = d.captainUid === uid || roster.some(p => p.uid === uid);
+      let isMember = d.captainUid === uid || roster.some(p => p.uid === uid);
+
+      // Самопочинка: ник в заявке совпадает с ником текущего профиля, но
+      // uid там ещё не проставлен — значит аккаунт завели позже подачи
+      // заявки. Дозаписываем uid прямо сейчас, без участия организатора.
+      if(!isMember && myNickLower){
+        const captainMatch = !d.captainUid && (d.captainName || '').trim().toLowerCase() === myNickLower;
+        const rosterIdx = roster.findIndex(p => !p.uid && (p.nickname || '').trim().toLowerCase() === myNickLower);
+
+        if(captainMatch || rosterIdx !== -1){
+          const patch = {};
+          if(captainMatch) patch.captainUid = uid;
+          if(rosterIdx !== -1){
+            patch.roster = roster.map((p, i) => i === rosterIdx ? Object.assign({}, p, { uid }) : p);
+          }
+          try{
+            await db.collection('teamApplications').doc(doc.id).update(patch);
+            Object.assign(d, patch);
+            isMember = true;
+          }catch(err){
+            console.warn('Не удалось автоматически привязать аккаунт к заявке ' + doc.id, err);
+          }
+        }
+      }
+
       if(isMember) mine.push(Object.assign({ id: doc.id }, d));
-    });
+    }
 
     if(!mine.length){
       wrap.innerHTML = '';
