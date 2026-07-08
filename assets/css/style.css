@@ -934,6 +934,47 @@ a.roster-faceit-link:hover{ background:var(--color-accent); color:#1C1D21; }
 }
 .profile-view-socials a:hover{ background:var(--color-accent); color:#1C1D21; border-color:var(--color-accent); }
 
+/* --- живая статистика FACEIT (assets/js/faceit-stats.js) --- */
+.faceit-stat-card{
+  margin-top:18px; padding:18px; border-radius:14px;
+  background:var(--color-surface-alt); border:1px solid var(--color-primary-line);
+}
+.faceit-stat-head{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.faceit-stat-avatar{
+  width:46px; height:46px; border-radius:50%; object-fit:cover; flex:none;
+  border:2px solid var(--color-primary); background:var(--color-surface);
+}
+.faceit-stat-name{ font-weight:800; font-family:var(--font-display); font-size:15px; color:var(--color-text); }
+.faceit-level{
+  display:inline-block; margin-left:8px; font-size:11px; font-weight:700; padding:2px 8px;
+  border-radius:6px; background:var(--color-primary-soft); color:var(--color-accent);
+}
+.faceit-stat-elo{ font-size:12.5px; color:var(--color-ink-soft); margin-top:2px; }
+.faceit-stat-link{
+  margin-left:auto; font-size:12px; font-weight:700; color:var(--color-accent);
+  white-space:nowrap; padding:7px 12px; border-radius:999px; border:1px solid var(--color-primary-line);
+  transition:all .2s ease;
+}
+.faceit-stat-link:hover{ background:var(--color-accent); color:#1C1D21; border-color:var(--color-accent); }
+.faceit-stat-grid{ display:flex; gap:10px; }
+.faceit-stat-item{
+  flex:1; text-align:center; padding:12px 6px; border-radius:10px; background:var(--color-surface);
+}
+.faceit-stat-value{ display:block; font-size:19px; font-weight:800; font-family:var(--font-display); color:var(--color-text); }
+.faceit-stat-label{ display:block; font-size:10.5px; color:var(--color-ink-soft); text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
+.faceit-star-row{ display:flex; align-items:center; gap:8px; margin-top:14px; }
+.star-rating{
+  position:relative; display:inline-block; font-size:19px; letter-spacing:2px; color:rgba(255,255,255,.15);
+}
+.star-rating::before{
+  content:"★★★★★"; position:absolute; left:0; top:0; width:var(--pct); overflow:hidden;
+  white-space:nowrap; color:#FFD166;
+}
+.faceit-star-value{ font-weight:800; font-family:var(--font-display); color:var(--color-text); font-size:14px; }
+.faceit-star-note{ font-size:10.5px; color:var(--color-ink-soft); margin-top:4px; line-height:1.4; }
+.faceit-stat-matches{ font-size:11.5px; color:var(--color-ink-soft); margin-top:10px; }
+.faceit-stat-loading, .faceit-stat-error{ font-size:12.5px; color:var(--color-ink-soft); margin-top:16px; line-height:1.5; }
+
 .pv-team-badge{
   display:flex; align-items:center; gap:12px; margin-top:18px;
   padding:12px 16px; border-radius:14px;
