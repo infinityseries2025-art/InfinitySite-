@@ -11,7 +11,7 @@
   {
     "id": 2,
     "name": "Hez1",
-    "role": "Тренер",
+    "role": "Капитан команды организаторов",
     "photo": "",
     "socials": { "faceit": "https://www.faceit.com/ru/players/Felexxx1715"}
   },
@@ -77,15 +77,6 @@
   "role": "Менеджер",
   "photo": "",
   "socials": {}
-},
-  {
-  "id": 10,
-  "name": "Anrill",
-  "role": "Менеджер",
-  "photo": "",
-  "socials": {
-     "telegram": "https://t.me/history_neww"
-  }
 }
   
   
