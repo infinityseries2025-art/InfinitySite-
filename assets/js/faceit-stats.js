@@ -15,7 +15,7 @@
    страницы и будет тратить лимит запросов FACEIT (у Data API он щедрый,
    на практике для сайта турнира этого достаточно с большим запасом).
 ========================================================= */
-const FACEIT_API_KEY = "de4daaa0-3aaa-4370-933d-6328ca97c0ba";
+const FACEIT_API_KEY = "ВСТАВЬ_СЮДА_СВОЙ_КЛЮЧ_С_developers.faceit.com";
 const FACEIT_API_BASE = "https://open.faceit.com/data/v4";
 
 /* Достаём ник игрока из ссылки на профиль вида
@@ -23,8 +23,17 @@ const FACEIT_API_BASE = "https://open.faceit.com/data/v4";
    https://www.faceit.com/en/players/NICKNAME/stats/cs2 */
 function extractFaceitNickname(url){
   if(!url) return null;
-  const m = String(url).match(/faceit\.com\/[a-z-]+\/players\/([^\/?#]+)/i);
-  return m ? decodeURIComponent(m[1]) : null;
+  const clean = String(url).trim();
+  // Поддерживаем и ссылки с языковым префиксом (faceit.com/ru/players/NICK),
+  // и без него (faceit.com/players/NICK), и случай, когда в поле профиля
+  // просто вписан голый ник без ссылки вообще.
+  const m = clean.match(/faceit\.com\/(?:[a-z-]+\/)?players\/([^\/?#]+)/i);
+  if(m) return decodeURIComponent(m[1]).trim();
+  if(!/^https?:\/\//i.test(clean) && !/\s/.test(clean) && clean.length > 0){
+    // похоже на голый ник (без ссылки) — вернём как есть
+    return clean;
+  }
+  return null;
 }
 
 function clamp01(v){ return Math.max(0, Math.min(1, v)); }
@@ -47,7 +56,17 @@ async function faceitFetch(path){
   const res = await fetch(FACEIT_API_BASE + path, {
     headers: { Authorization: 'Bearer ' + FACEIT_API_KEY }
   });
-  if(!res.ok) throw new Error('faceit-api-error-' + res.status);
+  if(!res.ok){
+    // Пытаемся вытащить настоящее тело ошибки от FACEIT (обычно JSON с полем errors),
+    // чтобы в консоли было видно РЕАЛЬНУЮ причину, а не просто код 400/401/404.
+    let detail = '';
+    try{
+      const bodyText = await res.text();
+      detail = bodyText;
+    }catch(e){ /* тело недоступно — не критично */ }
+    console.error('FACEIT API ответил ошибкой на запрос ' + path + ':', res.status, detail);
+    throw new Error('faceit-api-error-' + res.status + (detail ? (' :: ' + detail) : ''));
+  }
   return res.json();
 }
 
