@@ -112,7 +112,11 @@
         </div>
         <button class="btn secondary" id="logout-btn">Выйти</button>
       </div>
-      <p class="tagline" style="margin-bottom:20px;">Одобренные заявки сразу появляются на странице «Участники». Отклонённые и удалённые — не видны никому, кроме тебя.</p>
+      <p class="tagline" style="margin-bottom:12px;">Одобренные заявки сразу появляются на странице «Участники». Отклонённые и удалённые — не видны никому, кроме тебя.</p>
+      <div style="margin-bottom:16px;">
+        <button type="button" class="btn secondary" id="refresh-users-cache" style="font-size:13px;">🔄 Обновить список аккаунтов (для ручной привязки)</button>
+        <span id="refresh-users-status" style="font-size:12px; color:var(--color-ink-soft); margin-left:8px;"></span>
+      </div>
       <div class="grid cols-2" data-role="applications-list" id="applications-list"></div>
     </section>
 

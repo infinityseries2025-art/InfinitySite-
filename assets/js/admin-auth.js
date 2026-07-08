@@ -51,6 +51,7 @@ auth.onAuthStateChanged(async (user) => {
     // раздел управления аккаунтами (баны, роли) виден только организатору
     const usersSection = document.getElementById('users-admin-section');
     if(usersSection) usersSection.style.display = owner ? 'block' : 'none';
+    await loadUsersCache();
     startApplicationsListener();
   }else{
     // сюда попадает и гость, и обычный пользователь (создавший аккаунт на
@@ -101,7 +102,103 @@ loginForm.addEventListener('submit', async (e) => {
 
 logoutBtn.addEventListener('click', () => auth.signOut());
 
+const refreshUsersBtn = document.getElementById('refresh-users-cache');
+const refreshUsersStatus = document.getElementById('refresh-users-status');
+if(refreshUsersBtn){
+  refreshUsersBtn.addEventListener('click', async () => {
+    refreshUsersBtn.disabled = true;
+    if(refreshUsersStatus) refreshUsersStatus.textContent = 'Обновляем…';
+    await loadUsersCache();
+    // перерисовываем список селектов свежими данными — проще всего
+    // заново дождаться следующего onSnapshot, но он не сработает без
+    // изменений в базе, поэтому просто пере-рендерим из уже открытого снапшота
+    if(unsubscribeApps){ unsubscribeApps(); unsubscribeApps = null; startApplicationsListener(); }
+    refreshUsersBtn.disabled = false;
+    if(refreshUsersStatus) refreshUsersStatus.textContent = 'Список обновлён ✓';
+    setTimeout(() => { if(refreshUsersStatus) refreshUsersStatus.textContent = ''; }, 2000);
+  });
+}
+
 const statusLabels = { pending:'На модерации', approved:'Одобрена', rejected:'Отклонена' };
+
+/* ---------------------------------------------------------
+   РУЧНАЯ ПРИВЯЗКА АККАУНТОВ К СОСТАВУ КОМАНДЫ.
+   Обычно uid проставляется автоматически при подаче заявки (по совпадению
+   ника) или самопочинкой при заходе игрока в кабинет (см. account.js).
+   Но если ники не совпали дословно (опечатка, другой ник в профиле) —
+   организатор может привязать аккаунт вручную здесь, выбрав его из списка
+   всех зарегистрированных пользователей.
+--------------------------------------------------------- */
+let usersCache = []; // [{ uid, nickname }]
+
+async function loadUsersCache(){
+  try{
+    const snap = await db.collection('users').limit(1000).get();
+    usersCache = snap.docs
+      .map(d => ({ uid: d.id, nickname: (d.data().nickname || '').trim() }))
+      .filter(u => u.nickname)
+      .sort((a, b) => a.nickname.localeCompare(b.nickname));
+  }catch(err){
+    console.warn('Не удалось загрузить список аккаунтов для ручной привязки', err);
+    usersCache = [];
+  }
+}
+
+function userOptionsHTML(selectedUid){
+  const opts = ['<option value="">— не привязан —</option>'];
+  usersCache.forEach(u => {
+    opts.push(`<option value="${u.uid}" ${u.uid === selectedUid ? 'selected' : ''}>${u.nickname}</option>`);
+  });
+  return opts.join('');
+}
+
+// Состав как массив объектов, даже если в старой заявке он ещё хранится строкой.
+function normalizeRosterAdmin(roster){
+  if(Array.isArray(roster)) return roster;
+  if(typeof roster === 'string'){
+    return roster.split(/\n|,/).map(s => s.trim()).filter(Boolean).map(nickname => ({ nickname, uid: null }));
+  }
+  return [];
+}
+
+// Кодируем состав в data-атрибут кнопки, чтобы при сохранении не потерять
+// поля elo/faceit тех игроков, чей селект вообще не трогали.
+function encodeRosterForButton(roster){
+  return btoa(unescape(encodeURIComponent(JSON.stringify(roster))));
+}
+function decodeRosterFromButton(encoded){
+  try{ return JSON.parse(decodeURIComponent(escape(atob(encoded)))); }
+  catch(err){ return []; }
+}
+
+function linkBlockHTML(d){
+  const roster = normalizeRosterAdmin(d.roster);
+  const rosterRows = roster.map((p, i) => `
+    <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px;">
+      <span style="font-size:13px; min-width:120px;">${p.nickname || '—'}:</span>
+      <select class="link-roster" data-idx="${i}" style="flex:1; min-width:160px; padding:6px 8px; border-radius:8px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-size:13px;">
+        ${userOptionsHTML(p.uid || null)}
+      </select>
+    </div>`).join('');
+  return `
+  <div class="app-link-block" style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--color-primary-line);">
+    <div style="font-size:12px; color:var(--color-ink-soft); margin-bottom:6px;">
+      Привязка аккаунтов вручную (если ник не совпал автоматически):
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px;">
+      <span style="font-size:13px; min-width:120px;">Капитан (${d.captainName || '—'}):</span>
+      <select class="link-captain" style="flex:1; min-width:160px; padding:6px 8px; border-radius:8px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-size:13px;">
+        ${userOptionsHTML(d.captainUid || null)}
+      </select>
+    </div>
+    ${rosterRows}
+    <button type="button" class="app-links-save" data-roster="${encodeRosterForButton(roster)}"
+      style="padding:8px 14px; border-radius:8px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-size:12.5px; cursor:pointer;">
+      Сохранить привязки
+    </button>
+    <span class="app-links-status" style="font-size:12px; margin-left:8px; color:var(--color-ink-soft);"></span>
+  </div>`;
+}
 
 // Состав хранится как массив {nickname, uid, elo, faceit}. У заявок, отправленных
 // до этого обновления, ростер мог остаться строкой — поддерживаем оба формата.
@@ -147,6 +244,7 @@ function appCardHTML(doc){
       <button class="reject" data-action="rejected" ${d.status==='rejected' ? 'disabled' : ''}>Отклонить</button>
       <button class="delete" data-action="delete">Удалить</button>
     </div>
+    ${linkBlockHTML(d)}
     ${d.status === 'approved' ? `
     <div class="app-faceit-row" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:4px;">
       <input type="url" class="app-faceit-input" placeholder="Ссылка на участие в турнире Faceit для этой команды" value="${d.faceitInvite || ''}" style="flex:1; min-width:220px; padding:8px 10px; border-radius:8px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-size:13px;">
@@ -173,6 +271,36 @@ function startApplicationsListener(){
 }
 
 appsList.addEventListener('click', async (e) => {
+  const linksSaveBtn = e.target.closest('.app-links-save');
+  if(linksSaveBtn){
+    const card = linksSaveBtn.closest('.app-card');
+    const id = card.getAttribute('data-id');
+    const statusEl = card.querySelector('.app-links-status');
+    const captainSel = card.querySelector('.link-captain');
+    const roster = decodeRosterFromButton(linksSaveBtn.getAttribute('data-roster'));
+    card.querySelectorAll('.link-roster').forEach(sel => {
+      const idx = Number(sel.getAttribute('data-idx'));
+      if(roster[idx]) roster[idx] = Object.assign({}, roster[idx], { uid: sel.value || null });
+    });
+    const patch = { captainUid: captainSel.value || null, roster };
+
+    linksSaveBtn.disabled = true;
+    const original = linksSaveBtn.textContent;
+    linksSaveBtn.textContent = 'Сохраняем…';
+    try{
+      await db.collection('teamApplications').doc(id).update(patch);
+      if(statusEl) statusEl.textContent = 'Сохранено ✓';
+    }catch(err){
+      console.error(err);
+      if(statusEl) statusEl.textContent = 'Ошибка сохранения';
+      alert('Не удалось сохранить привязки. Попробуй ещё раз.');
+    }finally{
+      linksSaveBtn.disabled = false;
+      linksSaveBtn.textContent = original;
+    }
+    return;
+  }
+
   const saveFaceitBtn = e.target.closest('.app-faceit-save');
   if(saveFaceitBtn){
     const card = saveFaceitBtn.closest('.app-card');
