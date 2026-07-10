@@ -878,6 +878,24 @@ p{ line-height:1.65; margin:0 0 1em; }
 .social-fields{ display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
 @media (max-width:480px){ .social-fields{ grid-template-columns:1fr; } }
 
+/* --- таблицы в панели организатора (расписание, рейтинг Эло) ---
+   Основное оформление ячеек/полей уже задано инлайн-стилями в admin.html.
+   Не хватало главного: на мобильном 9-10 колонок таблицы просто сжимались
+   в нечитаемую кашу. Добавляем горизонтальный скролл внутри своего
+   контейнера (страницу это не ломает) и min-width, чтобы колонки не тонули. */
+.table-scroll{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  margin-bottom:16px;
+  border:1px solid var(--color-primary-line);
+  border-radius:var(--radius);
+}
+.admin-table{ min-width:760px; }
+#teams-admin-table{ min-width:420px; }
+@media (max-width:600px){
+  .table-scroll{ margin-left:-24px; margin-right:-24px; border-left:none; border-right:none; border-radius:0; width:calc(100% + 48px); }
+}
+
 /* --- состав команды: динамические строки с привязкой аккаунта --- */
 .roster-row{ display:flex; gap:8px; align-items:flex-start; margin-bottom:10px; }
 .roster-row .form-field{ flex:1; margin-bottom:0; }

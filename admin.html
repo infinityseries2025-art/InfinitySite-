@@ -128,23 +128,25 @@
         никаких файлов скачивать и коммитить в git не нужно.
       </p>
 
-      <table class="admin-table" id="admin-table">
-        <thead>
-          <tr>
-            <th style="width:9%">Игра</th>
-            <th style="width:16%">Стадия</th>
-            <th style="width:14%">Команда A</th>
-            <th style="width:14%">Команда B</th>
-            <th style="width:11%">Дата</th>
-            <th style="width:8%">Время</th>
-            <th style="width:10%">Статус</th>
-            <th style="width:8%">Счёт</th>
-            <th style="width:14%">Ссылка на трансляцию</th>
-            <th style="width:4%"></th>
-          </tr>
-        </thead>
-        <tbody id="admin-rows"></tbody>
-      </table>
+      <div class="table-scroll">
+        <table class="admin-table" id="admin-table">
+          <thead>
+            <tr>
+              <th style="width:9%">Игра</th>
+              <th style="width:16%">Стадия</th>
+              <th style="width:14%">Команда A</th>
+              <th style="width:14%">Команда B</th>
+              <th style="width:11%">Дата</th>
+              <th style="width:8%">Время</th>
+              <th style="width:10%">Статус</th>
+              <th style="width:8%">Счёт</th>
+              <th style="width:14%">Ссылка на трансляцию</th>
+              <th style="width:4%"></th>
+            </tr>
+          </thead>
+          <tbody id="admin-rows"></tbody>
+        </table>
+      </div>
 
       <div class="admin-actions">
         <button class="btn secondary" id="add-row">+ Добавить матч</button>
@@ -203,18 +205,20 @@
         <div id="teams-admin-tabs" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
         <button type="button" class="btn secondary" id="teams-clear-all">Очистить весь рейтинг (текущая игра)</button>
       </div>
-      <table class="admin-table" id="teams-admin-table">
-        <thead>
-          <tr>
-            <th>Команда</th>
-            <th>Эло</th>
-            <th>W</th>
-            <th>L</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="teams-admin-rows"></tbody>
-      </table>
+      <div class="table-scroll">
+        <table class="admin-table" id="teams-admin-table">
+          <thead>
+            <tr>
+              <th>Команда</th>
+              <th>Эло</th>
+              <th>W</th>
+              <th>L</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="teams-admin-rows"></tbody>
+        </table>
+      </div>
     </section>
 
     <section class="section container reveal">
@@ -237,8 +241,8 @@
             <input id="nDate" name="nDate" type="date" required>
           </div>
           <div class="form-field">
-            <label for="nImageUrl" style="display:inline-block;margin-right:10px;margin-bottom:0;">Картинка по ссылке:</label>
-            <input id="nImageUrl" name="nImageUrl" type="url" placeholder="https://i.imgur.com/xxxxx.png" style="display:inline-block;width:auto;flex:1;min-width:260px;">
+            <label for="nImageUrl">Картинка по ссылке:</label>
+            <input id="nImageUrl" name="nImageUrl" type="url" placeholder="https://i.imgur.com/xxxxx.png">
             <small style="color:var(--color-ink-soft);display:block;margin-top:6px;">
               Вставь прямую ссылку на картинку. Ссылки из Discord CDN не подходят — они «протухают».
               Как получить постоянную ссылку — см. подсказку под формой.
