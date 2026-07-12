@@ -179,8 +179,9 @@ function matchCardHTML(m, i){
   const g = gameClass[m.game] || 'custom';
   const label = gameLabel[m.game] || m.game;
   const sLabel = statusLabel[m.status] || m.status;
+  const faceitAttr = m.faceitMatchId ? ` data-faceit-id="${String(m.faceitMatchId).replace(/"/g,'')}"` : '';
   return `
-  <div class="card match-card" style="--i:${i}">
+  <div class="card match-card" style="--i:${i}"${faceitAttr}>
     <div class="match-top">
       <span class="game-tag ${g}">${label}</span>
       <span class="status-tag ${m.status}">${sLabel}</span>
@@ -388,6 +389,65 @@ function checkNavAlert(){
   });
 }
 
+/* ---------- плавающий виджет: смотреть Twitch-трансляцию прямо на сайте ----------
+   Если у какого-то матча в расписании статус "live" и в поле "Ссылка на
+   трансляцию" указан Twitch — в правом нижнем углу появляется компактный
+   плеер с трансляцией. Кнопки — только иконки, без подписей: перейти на
+   Twitch и закрыть. Закрытие запоминается на время вкладки (sessionStorage),
+   чтобы виджет не выскакивал повторно при переходе по страницам сайта. */
+function extractTwitchChannel(url){
+  if(!url) return null;
+  const m = String(url).match(/twitch\.tv\/([a-zA-Z0-9_]+)/i);
+  return m ? m[1] : null;
+}
+
+const twitchWidgetIcons = {
+  open: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 3h7v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 14 21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  close: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
+async function initTwitchWatchWidget(){
+  // в панели организатора виджет только мешал бы работе
+  if(document.body.getAttribute('data-page') === 'admin') return;
+
+  const schedule = (await loadSchedule()) || [];
+  const liveMatch = schedule.find(m => m.status === 'live' && extractTwitchChannel(m.stream));
+  const existing = document.getElementById('twitch-watch-widget');
+
+  if(!liveMatch){
+    // трансляция закончилась (или статус сняли) — прибираем виджет, если он был открыт
+    if(existing) existing.remove();
+    return;
+  }
+  if(existing) return;
+
+  const channel = extractTwitchChannel(liveMatch.stream);
+  const closedKey = 'ist_twitch_widget_closed_' + channel;
+  try{ if(sessionStorage.getItem(closedKey) === '1') return; }catch(e){ /* приватный режим — просто не запоминаем закрытие */ }
+
+  const parentHost = location.hostname || 'localhost';
+  const wrap = document.createElement('div');
+  wrap.id = 'twitch-watch-widget';
+  wrap.className = 'twitch-widget';
+  wrap.innerHTML = `
+    <div class="twitch-widget-controls">
+      <button type="button" class="twitch-widget-btn" id="twitch-widget-open" title="Перейти на Twitch" aria-label="Перейти на Twitch">${twitchWidgetIcons.open}</button>
+      <button type="button" class="twitch-widget-btn" id="twitch-widget-close" title="Закрыть" aria-label="Закрыть">${twitchWidgetIcons.close}</button>
+    </div>
+    <div class="twitch-widget-frame">
+      <iframe src="https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&parent=${encodeURIComponent(parentHost)}&muted=true" allowfullscreen frameborder="0" scrolling="no"></iframe>
+    </div>`;
+  document.body.appendChild(wrap);
+
+  document.getElementById('twitch-widget-open').addEventListener('click', () => {
+    window.open('https://twitch.tv/' + channel, '_blank', 'noopener');
+  });
+  document.getElementById('twitch-widget-close').addEventListener('click', () => {
+    wrap.remove();
+    try{ sessionStorage.setItem(closedKey, '1'); }catch(e){}
+  });
+}
+
 /* ---------- инициализация страницы ---------- */
 document.addEventListener('DOMContentLoaded', async () => {
   const config = await loadJSON('config');
@@ -401,6 +461,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
   initScrollReveal();
   checkNavAlert();
+  initTwitchWatchWidget();
+  setInterval(initTwitchWatchWidget, 60000);
 
   const form = document.querySelector('#contact-form');
   if(form){

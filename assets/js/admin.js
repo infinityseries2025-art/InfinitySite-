@@ -19,6 +19,17 @@ function gameOptionsHTML(selected){
   ).join('');
 }
 
+/* Достаём ID матча из ссылки на комнату FACEIT вида
+   https://www.faceit.com/ru/cs2/room/1-xxxxxxxx-xxxx-...
+   Если вставлен уже голый ID — возвращаем как есть. */
+function extractFaceitMatchId(input){
+  if(!input) return '';
+  const clean = String(input).trim();
+  const m = clean.match(/faceit\.com\/[a-z-]+\/[a-z0-9]+\/room\/([^\/?#]+)/i);
+  if(m) return decodeURIComponent(m[1]).trim();
+  return clean;
+}
+
 function rowTemplate(id, m = {}){
   const tr = document.createElement('tr');
   tr.setAttribute('data-id', id || '');
@@ -42,6 +53,7 @@ function rowTemplate(id, m = {}){
     </td>
     <td><input class="f-score" type="text" value="${m.score||''}" placeholder="2:1"></td>
     <td><input class="f-stream" type="text" value="${m.stream||''}" placeholder="https://twitch.tv/..."></td>
+    <td><input class="f-faceit" type="text" value="${m.faceitMatchId||''}" placeholder="Ссылка на комнату FACEIT (необязательно)"></td>
     <td><button type="button" class="row-remove" title="Удалить">✕</button></td>
   `;
   return tr;
@@ -58,6 +70,7 @@ function readRow(tr){
     status: tr.querySelector('.f-status').value,
     score: tr.querySelector('.f-score').value,
     stream: tr.querySelector('.f-stream').value,
+    faceitMatchId: extractFaceitMatchId(tr.querySelector('.f-faceit').value),
   };
 }
 
@@ -76,7 +89,7 @@ function sortScheduleDocs(docs){
 }
 
 function showScheduleMessage(text){
-  rowsBody.innerHTML = `<tr><td colspan="10"><div class="empty-state">${text}</div></td></tr>`;
+  rowsBody.innerHTML = `<tr><td colspan="11"><div class="empty-state">${text}</div></td></tr>`;
 }
 
 function startScheduleListener(){
@@ -142,7 +155,7 @@ addRowBtn.addEventListener('click', async () => {
 
   const draft = {
     game: 'CS2', stage: '', teamA: '', teamB: '',
-    date: '', time: '', status: 'upcoming', score: '', stream: '',
+    date: '', time: '', status: 'upcoming', score: '', stream: '', faceitMatchId: '',
   };
 
   try{

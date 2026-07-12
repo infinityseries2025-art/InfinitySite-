@@ -890,10 +890,50 @@ p{ line-height:1.65; margin:0 0 1em; }
   border:1px solid var(--color-primary-line);
   border-radius:var(--radius);
 }
-.admin-table{ min-width:760px; }
+.admin-table{ min-width:860px; }
 #teams-admin-table{ min-width:420px; }
 @media (max-width:600px){
   .table-scroll{ margin-left:-24px; margin-right:-24px; border-left:none; border-right:none; border-radius:0; width:calc(100% + 48px); }
+}
+
+/* --- плавающий виджет: смотреть Twitch-трансляцию прямо на сайте --- */
+.twitch-widget{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  width:320px;
+  max-width:calc(100vw - 32px);
+  border-radius:16px;
+  overflow:hidden;
+  background:#000;
+  border:2px solid var(--color-primary);
+  box-shadow:var(--shadow-glow), var(--shadow-soft);
+  z-index:999;
+  animation:popIn .45s var(--ease) both;
+}
+.twitch-widget-frame{ position:relative; width:100%; aspect-ratio:16/9; }
+.twitch-widget-frame iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.twitch-widget-controls{
+  position:absolute;
+  top:8px; right:8px;
+  display:flex; gap:6px;
+  z-index:2;
+}
+.twitch-widget-btn{
+  width:30px; height:30px;
+  border-radius:50%;
+  border:none;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(15,15,18,.6);
+  backdrop-filter:blur(6px);
+  color:#fff;
+  transition:background .2s ease, color .2s ease, transform .2s ease;
+}
+.twitch-widget-btn svg{ width:15px; height:15px; }
+.twitch-widget-btn:hover{ background:var(--color-accent); color:#1C1D21; transform:scale(1.08); }
+@media (max-width:480px){
+  .twitch-widget{ right:12px; bottom:12px; width:240px; }
 }
 
 /* --- состав команды: динамические строки с привязкой аккаунта --- */
