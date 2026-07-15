@@ -20,13 +20,70 @@
    быть разрешено авторизованным пользователям читать и писать коллекцию
    friendRequests (создавать заявки, обновлять статус на accepted только
    если ты — получатель, удалять если ты участник). См. FIREBASE_SETUP.md.
+
+   ---------------------------------------------------------
+   БЛОКИРОВКА — коллекция Firestore "blocks". ID документа —
+   "blockerUid_blockedUid" (порядок важен, в отличие от friendRequests):
+   заблокировать может только тот, кто владеет документом (blocker),
+   разблокировать — тоже только он. Блокировка односторонняя и скрытая:
+   тот, кого заблокировали, не видит факт блокировки — просто не может
+   больше отправлять заявки/писать этому человеку.
+
+   Поля документа:
+     blocker, blocked        — кто кого заблокировал
+     blockedNickname
+     createdAt
+
+   При блокировке существующая заявка/дружба между людьми удаляется.
+
+   ПРИВАТНОСТЬ — поле users/{uid}.friendsPrivacy: 'everyone' | 'nobody'.
+   Если 'nobody' — кнопка "Добавить в друзья" не показывается никому,
+   кроме уже существующих отношений. Проверка на стороне клиента (как
+   и остальная модель доверия на этом сайте, см. teamApplications) —
+   не защита от целенаправленного обхода, а честный UX по умолчанию.
 ========================================================= */
 
 function friendReqId(uidA, uidB){
   return [uidA, uidB].sort().join('_');
 }
 
+function blockDocId(blockerUid, blockedUid){
+  return `${blockerUid}_${blockedUid}`;
+}
+
+async function getBlockState(myUid, otherUid){
+  const [mine, theirs] = await Promise.all([
+    db.collection('blocks').doc(blockDocId(myUid, otherUid)).get(),
+    db.collection('blocks').doc(blockDocId(otherUid, myUid)).get(),
+  ]);
+  return { blockedByMe: mine.exists, blockedByOther: theirs.exists };
+}
+
+async function blockUser(myUid, otherUid, otherNickname){
+  // блокировка разрывает текущую заявку/дружбу между людьми
+  try{ await db.collection('friendRequests').doc(friendReqId(myUid, otherUid)).delete(); }
+  catch(err){ /* не критично, если заявки и не было */ }
+  await db.collection('blocks').doc(blockDocId(myUid, otherUid)).set({
+    blocker: myUid,
+    blocked: otherUid,
+    blockedNickname: otherNickname || '',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+async function unblockUser(myUid, otherUid){
+  await db.collection('blocks').doc(blockDocId(myUid, otherUid)).delete();
+}
+
 async function sendFriendRequest(myUid, myNickname, otherUid, otherNickname){
+  const blockState = await getBlockState(myUid, otherUid);
+  if(blockState.blockedByMe || blockState.blockedByOther){
+    throw new Error('Нельзя отправить заявку — пользователь заблокирован.');
+  }
+  const otherUserSnap = await db.collection('users').doc(otherUid).get();
+  if(otherUserSnap.exists && otherUserSnap.data().friendsPrivacy === 'nobody'){
+    throw new Error('Этот игрок закрыл приём заявок в друзья.');
+  }
   const id = friendReqId(myUid, otherUid);
   const ref = db.collection('friendRequests').doc(id);
   const existing = await ref.get();
@@ -54,9 +111,21 @@ async function removeOrCancelFriendRequest(id){
   await db.collection('friendRequests').doc(id).delete();
 }
 
-/* Состояние отношений между myUid и otherUid: 'none' | 'outgoing' | 'incoming' | 'friends' */
+/* Состояние отношений между myUid и otherUid:
+   'none' | 'outgoing' | 'incoming' | 'friends' | 'blocked-by-me' | 'blocked-by-other' */
 async function getFriendStatus(myUid, otherUid){
   if(!myUid || !otherUid || myUid === otherUid) return { state: 'self' };
+  try{
+    const blockState = await getBlockState(myUid, otherUid);
+    if(blockState.blockedByMe){
+      return { state: 'blocked-by-me', id: blockDocId(myUid, otherUid) };
+    }
+    if(blockState.blockedByOther){
+      return { state: 'blocked-by-other' };
+    }
+  }catch(err){
+    console.warn('Не удалось проверить блокировки', err);
+  }
   const id = friendReqId(myUid, otherUid);
   const snap = await db.collection('friendRequests').doc(id).get();
   if(!snap.exists) return { state: 'none', id };
@@ -66,20 +135,34 @@ async function getFriendStatus(myUid, otherUid){
   return { state: 'incoming', id };
 }
 
-function friendActionButtonHTML(status, otherUid, otherNickname){
+function friendActionButtonHTML(status, otherUid, otherNickname, privacy){
   if(status.state === 'self') return '';
+
+  const nick = (otherNickname || '').replace(/"/g,'');
+  const blockBtn = `<button type="button" class="btn secondary small" data-friend-action="block" data-other-uid="${otherUid}" data-other-nickname="${nick}" title="Заблокировать пользователя">Заблокировать</button>`;
+
+  if(status.state === 'blocked-by-me'){
+    return `<button type="button" class="btn secondary small" data-friend-action="unblock" data-other-uid="${otherUid}">Разблокировать</button>`;
+  }
+  if(status.state === 'blocked-by-other'){
+    return `<span class="friend-row-note" style="font-size:13px; color:var(--color-ink-soft);">Действия недоступны</span>`;
+  }
   if(status.state === 'friends'){
-    return `<button type="button" class="btn secondary small" data-friend-action="remove" data-req-id="${status.id}">✓ Друзья — удалить</button>`;
+    return `<button type="button" class="btn secondary small" data-friend-action="remove" data-req-id="${status.id}">✓ Друзья — удалить</button>${blockBtn}`;
   }
   if(status.state === 'outgoing'){
-    return `<button type="button" class="btn secondary small" data-friend-action="cancel" data-req-id="${status.id}">Заявка отправлена — отменить</button>`;
+    return `<button type="button" class="btn secondary small" data-friend-action="cancel" data-req-id="${status.id}">Заявка отправлена — отменить</button>${blockBtn}`;
   }
   if(status.state === 'incoming'){
     return `
       <button type="button" class="btn small" data-friend-action="accept" data-req-id="${status.id}">Принять заявку</button>
-      <button type="button" class="btn secondary small" data-friend-action="decline" data-req-id="${status.id}">Отклонить</button>`;
+      <button type="button" class="btn secondary small" data-friend-action="decline" data-req-id="${status.id}">Отклонить</button>${blockBtn}`;
   }
-  return `<button type="button" class="btn small" data-friend-action="add" data-other-uid="${otherUid}" data-other-nickname="${(otherNickname || '').replace(/"/g,'')}">+ Добавить в друзья</button>`;
+  // state === 'none'
+  if(privacy === 'nobody'){
+    return `<span class="friend-row-note" style="font-size:13px; color:var(--color-ink-soft);">Закрыл приём заявок</span> ${blockBtn}`;
+  }
+  return `<button type="button" class="btn small" data-friend-action="add" data-other-uid="${otherUid}" data-other-nickname="${nick}">+ Добавить в друзья</button>${blockBtn}`;
 }
 
 function friendRowHTML(uid, nickname, avatar, extraHTML){
@@ -107,8 +190,12 @@ async function renderFriendActionOnProfileView(viewedUid, viewedNickname){
   if(!me){ wrap.innerHTML = ''; return; }
   if(me.uid === viewedUid){ wrap.innerHTML = ''; return; }
   try{
-    const status = await getFriendStatus(me.uid, viewedUid);
-    wrap.innerHTML = friendActionButtonHTML(status, viewedUid, viewedNickname);
+    const [status, otherSnap] = await Promise.all([
+      getFriendStatus(me.uid, viewedUid),
+      db.collection('users').doc(viewedUid).get(),
+    ]);
+    const privacy = otherSnap.exists ? otherSnap.data().friendsPrivacy : '';
+    wrap.innerHTML = friendActionButtonHTML(status, viewedUid, viewedNickname, privacy);
   }catch(err){
     console.warn('Не удалось загрузить статус дружбы', err);
   }
@@ -124,7 +211,12 @@ async function loadFriendsUsersCache(){
   try{
     const snap = await db.collection('users').limit(500).get();
     friendsUsersCache = snap.docs
-      .map(d => ({ uid: d.id, nickname: (d.data().nickname || '').trim(), avatar: d.data().avatar || '' }))
+      .map(d => ({
+        uid: d.id,
+        nickname: (d.data().nickname || '').trim(),
+        avatar: d.data().avatar || '',
+        friendsPrivacy: d.data().friendsPrivacy || 'everyone',
+      }))
       .filter(u => u.nickname);
   }catch(err){
     console.warn('Не удалось загрузить список игроков для поиска', err);
@@ -150,8 +242,25 @@ async function runFriendSearch(myUid, query){
   await Promise.all(matches.map(async (u) => {
     const status = await getFriendStatus(myUid, u.uid);
     const row = resultsEl.querySelector(`.friend-row[data-uid="${u.uid}"] .friend-row-actions`);
-    if(row) row.innerHTML = friendActionButtonHTML(status, u.uid, u.nickname);
+    if(row) row.innerHTML = friendActionButtonHTML(status, u.uid, u.nickname, u.friendsPrivacy);
   }));
+}
+
+async function loadBlockedList(myUid){
+  const wrap = document.getElementById('blocked-list-wrap');
+  if(!wrap) return;
+  try{
+    const snap = await db.collection('blocks').where('blocker', '==', myUid).get();
+    if(snap.empty){ wrap.innerHTML = ''; return; }
+    const rows = snap.docs.map(d => {
+      const b = d.data();
+      return friendRowHTML(b.blocked, b.blockedNickname || 'Без ника', '',
+        `<button type="button" class="btn secondary small" data-friend-action="unblock" data-other-uid="${b.blocked}">Разблокировать</button>`);
+    }).join('');
+    wrap.innerHTML = `<h4 style="margin-bottom:10px; font-size:15px;">Заблокированные (${snap.size})</h4>${rows}`;
+  }catch(err){
+    console.warn('Не удалось загрузить список заблокированных', err);
+  }
 }
 
 async function loadFriendsSection(myUid){
@@ -159,6 +268,8 @@ async function loadFriendsSection(myUid){
   const requestsWrap = document.getElementById('friend-requests-wrap');
   const friendsListEl = document.getElementById('friends-list');
   if(!searchInput || !requestsWrap || !friendsListEl) return;
+
+  loadBlockedList(myUid);
 
   if(!searchInput.dataset.bound){
     searchInput.dataset.bound = '1';
@@ -247,10 +358,36 @@ document.addEventListener('click', async (e) => {
         const row = btn.closest('.friend-row');
         if(row) row.remove();
       }
+    }else if(action === 'block'){
+      const otherUid = btn.getAttribute('data-other-uid');
+      const otherNickname = btn.getAttribute('data-other-nickname') || '';
+      const sure = confirm('Заблокировать этого игрока? Текущая дружба или заявка будет разорвана, а он больше не сможет отправлять вам заявки.');
+      if(!sure) return;
+      await blockUser(me.uid, otherUid, otherNickname);
+      const status = { state: 'blocked-by-me', id: blockDocId(me.uid, otherUid) };
+      const wrap = document.getElementById('pv-friend-wrap');
+      if(wrap && wrap.contains(btn)){
+        wrap.innerHTML = friendActionButtonHTML(status, otherUid, otherNickname);
+      }else{
+        const actionsEl = btn.closest('.friend-row-actions') || btn.parentElement;
+        if(actionsEl) actionsEl.innerHTML = friendActionButtonHTML(status, otherUid, otherNickname);
+      }
+      if(typeof loadFriendsSection === 'function') loadFriendsSection(me.uid);
+    }else if(action === 'unblock'){
+      const otherUid = btn.getAttribute('data-other-uid');
+      await unblockUser(me.uid, otherUid);
+      const wrap = document.getElementById('pv-friend-wrap');
+      if(wrap && wrap.contains(btn)){
+        const status = await getFriendStatus(me.uid, otherUid);
+        wrap.innerHTML = friendActionButtonHTML(status, otherUid, '');
+      }else{
+        const row = btn.closest('.friend-row');
+        if(row) row.remove();
+      }
     }
   }catch(err){
     console.error('Не удалось выполнить действие с друзьями', err);
-    alert('Не получилось выполнить действие. Возможно, не настроены права доступа в Firestore (см. FIREBASE_SETUP.md).');
+    alert(err && err.message ? err.message : 'Не получилось выполнить действие. Возможно, не настроены права доступа в Firestore (см. FIREBASE_SETUP.md).');
   }finally{
     btn.disabled = false;
   }

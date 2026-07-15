@@ -47,6 +47,41 @@ function fmtDate(iso){
 const gameLabel = { CS2:'CS2', Dota2:'Dota 2', PUBG:'PUBG' };
 const gameClass = { CS2:'cs2', Dota2:'dota2', PUBG:'pubg' };
 
+/* ---------- фон: диагональные капсулы в цветах сайта (по референсу) ----------
+   Один слой на всех страницах, вставляется JS-ом при загрузке, чтобы не
+   дублировать разметку в каждом html-файле. Все цвета и радиусы взяты из
+   тех же переменных, что и остальной сайт (--color-accent и синий статус
+   "upcoming") — просто раскладка похожа на референс-картинку. Чистый
+   CSS/JS, никаких внешних сервисов — бесплатному тарифу это никак не мешает. */
+const BG_SHAPES = [
+  { type:'shape', variant:'pink',         x:'-6%',  y:'-8%',  w:320, h:66, rot:-35, dx:'14px', dy:'-18px', dur:'22s' },
+  { type:'shape', variant:'outline',      x:'26%',  y:'-4%',  w:190, h:50, rot:-35, dx:'-10px', dy:'14px', dur:'19s', delay:'1.2s' },
+  { type:'shape', variant:'line',         x:'46%',  y:'8%',   w:140, h:5,  rot:-35, dx:'12px', dy:'-8px', dur:'16s', delay:'.4s' },
+  { type:'ring',  x:'64%',  y:'4%',  s:34, rot:20, dx:'-6px', dy:'10px', dur:'20s' },
+  { type:'shape', variant:'blue',         x:'-8%',  y:'34%',  w:270, h:60, rot:-35, dx:'-14px', dy:'16px', dur:'24s', delay:'.8s' },
+  { type:'shape', variant:'outline-blue', x:'16%',  y:'42%',  w:210, h:56, rot:-35, dx:'10px', dy:'-14px', dur:'21s', delay:'2s' },
+  { type:'ring',  x:'6%',   y:'54%', s:26, rot:-10, dx:'8px', dy:'-10px', dur:'18s', delay:'.6s' },
+  { type:'shape', variant:'pink',         x:'70%',  y:'70%',  w:300, h:64, rot:-35, dx:'-12px', dy:'-16px', dur:'23s', delay:'.3s' },
+  { type:'shape', variant:'outline',      x:'88%',  y:'84%',  w:180, h:48, rot:-35, dx:'10px', dy:'12px', dur:'20s', delay:'1.6s' },
+  { type:'shape', variant:'line',         x:'8%',   y:'82%',  w:120, h:5,  rot:-35, dx:'-10px', dy:'10px', dur:'17s', delay:'1s' },
+];
+
+function initBgShapes(){
+  if(document.querySelector('.bg-shapes')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'bg-shapes';
+  wrap.setAttribute('aria-hidden', 'true');
+  wrap.innerHTML =
+    '<div class="bg-glow bg-glow--a"></div><div class="bg-glow bg-glow--b"></div>' +
+    BG_SHAPES.map(s => {
+      if(s.type === 'ring'){
+        return `<div class="bg-ring" style="--x:${s.x};--y:${s.y};--s:${s.s}px;--rot:${s.rot}deg;--dx:${s.dx};--dy:${s.dy};--dur:${s.dur};animation-delay:${s.delay||'0s'};"></div>`;
+      }
+      return `<div class="bg-shape bg-shape--${s.variant}" style="--x:${s.x};--y:${s.y};--w:${s.w}px;--h:${s.h}px;--rot:${s.rot}deg;--dx:${s.dx};--dy:${s.dy};--dur:${s.dur};animation-delay:${s.delay||'0s'};"></div>`;
+    }).join('');
+  document.body.prepend(wrap);
+}
+
 /* ---------- список игр: базовые + добавленные организатором/модератором ----------
    Хранится в Firestore, коллекция "settings", документ "games", поле "list".
    Так организатор или модератор может добавить новую дисциплину прямо
@@ -112,6 +147,14 @@ async function initChrome(config){
   const links = document.querySelector('.nav-links');
   if(toggle && links){
     toggle.addEventListener('click', () => links.classList.toggle('open'));
+  }
+
+  // лёгкая тень у навбара при скролле страницы
+  const navbarEl = document.querySelector('.navbar');
+  if(navbarEl){
+    const syncNavShadow = () => navbarEl.classList.toggle('scrolled', window.scrollY > 8);
+    syncNavShadow();
+    window.addEventListener('scroll', syncNavShadow, { passive:true });
   }
 
   // контакты в футере
@@ -450,6 +493,7 @@ async function initTwitchWatchWidget(){
 
 /* ---------- инициализация страницы ---------- */
 document.addEventListener('DOMContentLoaded', async () => {
+  initBgShapes();
   const config = await loadJSON('config');
   await initChrome(config);
   await Promise.all([

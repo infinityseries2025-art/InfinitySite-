@@ -85,11 +85,10 @@ async function renderLeaderboard(){
     <div class="leaderboard-table">
       ${rows.map((t, i) => {
         const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
-        const crown = i === 0 ? `<span class="lb-crown">👑</span>` : '';
+        const medal = i < 3 ? `<span class="lb-medal"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="9.5" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M6 4 4.5 1M10 4 11.5 1" stroke="currentColor" stroke-width="1.4"/><path d="M8 7v5" stroke="currentColor" stroke-width="1.4"/></svg></span>` : '';
         return `
         <div class="leaderboard-row ${rankClass}" style="--i:${i}">
-          ${crown}
-          <div class="lb-rank">#${i + 1}</div>
+          <div class="lb-rank">${medal}#${i + 1}</div>
           <div class="lb-name">${t.name}${trophyBadges(t.trophies)}</div>
           <div class="lb-record">${t.wins || 0}W · ${t.losses || 0}L</div>
           <div class="lb-elo">${t.elo || 1000}</div>

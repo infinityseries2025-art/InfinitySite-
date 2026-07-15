@@ -221,6 +221,7 @@ const pTelegram = document.getElementById('pTelegram');
 const pDiscord = document.getElementById('pDiscord');
 const pVk = document.getElementById('pVk');
 const pTwitch = document.getElementById('pTwitch');
+const pFriendsPrivacy = document.getElementById('pFriendsPrivacy');
 const pAvatarFile = document.getElementById('pAvatarFile');
 const profileAvatarPreview = document.getElementById('profile-avatar-preview');
 const profileAvatarRemove = document.getElementById('profile-avatar-remove');
@@ -271,6 +272,7 @@ async function loadProfile(uid){
     pDiscord.value = socials.discord || '';
     pVk.value = socials.vk || '';
     pTwitch.value = socials.twitch || '';
+    pFriendsPrivacy.value = p.friendsPrivacy === 'nobody' ? 'nobody' : 'everyone';
     currentAvatarDataURL = p.avatar || '';
     renderAvatarPreview();
   }catch(err){
@@ -307,6 +309,7 @@ profileForm.addEventListener('submit', async (e) => {
       avatar: currentAvatarDataURL,
       description: pDescription.value.trim(),
       faceitElo: Math.round(faceitEloValue),
+      friendsPrivacy: pFriendsPrivacy.value === 'nobody' ? 'nobody' : 'everyone',
       socials: {
         telegram: pTelegram.value.trim(),
         discord: pDiscord.value.trim(),

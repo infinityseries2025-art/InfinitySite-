@@ -221,10 +221,10 @@ function rosterToHTML(roster){
   if(Array.isArray(roster)){
     return roster.map(p => {
       if(!p || !p.nickname) return '';
-      const linkMark = p.uid ? ' 🔗' : '';
+      const linkMark = p.uid ? ` <a href="account.html?u=${p.uid}" target="_blank" rel="noopener" class="admin-inline-link" title="Открыть аккаунт на сайте">🔗 аккаунт</a>` : '';
       const eloMark = p.elo ? ` (эло ${p.elo})` : '';
-      const faceitMark = p.faceit ? ` — <a href="${p.faceit}" target="_blank" rel="noopener">Faceit ↗</a>` : '';
-      return `${p.nickname}${linkMark}${eloMark}${faceitMark}`;
+      const faceitMark = p.faceit ? ` <a href="${p.faceit}" target="_blank" rel="noopener" class="admin-inline-link admin-inline-link--faceit">Faceit ↗</a>` : '';
+      return `${p.nickname}${eloMark}${linkMark}${faceitMark}`;
     }).filter(Boolean).join(', ');
   }
   if(typeof roster === 'string') return roster.replace(/\n/g, ', ');
@@ -248,7 +248,7 @@ function appCardHTML(doc, isNew){
       <span class="app-status-badge ${d.status}">${statusLabels[d.status] || d.status}${isNew ? ' · новая' : ''}</span>
     </div>
     <div style="font-size:13px; color:var(--color-ink-soft);">
-      Игра: ${d.game || '—'} · Капитан: ${d.captainName || '—'}${d.captainUid ? ' 🔗' : ''}<br>
+      Игра: ${d.game || '—'} · Капитан: ${d.captainName || '—'}${d.captainUid ? ` <a href="account.html?u=${d.captainUid}" target="_blank" rel="noopener" class="admin-inline-link" title="Открыть аккаунт на сайте">🔗 аккаунт</a>` : ''}<br>
       Контакт: ${d.contact || '—'}<br>
       ${d.avgElo ? `Средний эло состава: <strong>${d.avgElo}</strong><br>` : ''}
       Состав: ${roster || '—'}
@@ -264,6 +264,7 @@ function appCardHTML(doc, isNew){
     <div class="app-faceit-row" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:4px;">
       <input type="url" class="app-faceit-input" placeholder="Ссылка на участие в турнире Faceit для этой команды" value="${d.faceitInvite || ''}" style="flex:1; min-width:220px; padding:8px 10px; border-radius:8px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-size:13px;">
       <button type="button" class="app-faceit-save" style="padding:8px 14px; border-radius:8px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-size:12.5px; cursor:pointer;">Сохранить ссылку</button>
+      ${d.faceitInvite ? `<a href="${d.faceitInvite}" target="_blank" rel="noopener" class="admin-inline-link admin-inline-link--faceit" title="Открыть ссылку Faceit">Открыть ↗</a>` : ''}
     </div>
     <div style="font-size:11.5px; color:var(--color-ink-soft);">Эта ссылка появится у участников команды в их кабинете (страница «Участники» → клик по карточке команды).</div>` : ''}
   </div>`;

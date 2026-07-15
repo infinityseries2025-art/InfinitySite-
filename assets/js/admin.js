@@ -738,6 +738,9 @@ function userAdminCardHTML(u){
   const nickname = u.nickname || '(без ника)';
   const roleBadge = u.role === 'moderator' ? `<span class="app-status-badge approved">Модератор</span>` : '';
   const banBadge = u.banned ? `<span class="app-status-badge rejected">Забанен</span>` : '';
+  const faceitRaw = (u.socials && u.socials.vk) || '';
+  const faceitUrl = faceitRaw ? (faceitRaw.startsWith('http') ? faceitRaw : `https://www.faceit.com/ru/players/${faceitRaw}`) : '';
+  const eloText = u.faceitElo ? `Эло: ${u.faceitElo}` : '';
   return `
   <div class="card app-card" data-id="${u.id}">
     <div class="app-top">
@@ -745,11 +748,18 @@ function userAdminCardHTML(u){
         <div class="team-avatar" style="width:36px; height:36px; margin:0; flex:none; font-size:13px;">
           ${u.avatar ? `<img src="${u.avatar}" alt="${nickname}">` : nickname.slice(0,2).toUpperCase()}
         </div>
-        <strong>${nickname}</strong>
+        <div>
+          <strong>${nickname}</strong>
+          ${eloText ? `<div style="font-size:11.5px; color:var(--color-ink-soft);">${eloText}</div>` : ''}
+        </div>
       </div>
       <div style="display:flex; gap:6px;">${roleBadge}${banBadge}</div>
     </div>
-    <div style="font-size:12.5px; color:var(--color-ink-soft); word-break:break-all;">UID: ${u.id}</div>
+    <div class="admin-link-row">
+      <a href="account.html?u=${u.id}" target="_blank" rel="noopener" class="admin-inline-link">🔗 Профиль на сайте</a>
+      ${faceitUrl ? `<a href="${faceitUrl}" target="_blank" rel="noopener" class="admin-inline-link admin-inline-link--faceit">Faceit ↗</a>` : `<span class="admin-inline-link admin-inline-link--muted">Faceit не привязан</span>`}
+    </div>
+    <div style="font-size:11.5px; color:var(--color-ink-soft); word-break:break-all;">UID: ${u.id}</div>
     <div class="app-actions">
       <button type="button" class="toggle-mod" data-id="${u.id}" data-value="${u.role === 'moderator' ? '' : 'moderator'}">
         ${u.role === 'moderator' ? 'Снять модератора' : 'Сделать модератором'}
