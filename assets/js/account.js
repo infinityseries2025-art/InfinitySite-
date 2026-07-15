@@ -58,6 +58,9 @@ if(viewedUid){
       }
 
       loadPlayerTeamBadge(viewedUid);
+      if(typeof renderFriendActionOnProfileView === 'function'){
+        auth.onAuthStateChanged(() => renderFriendActionOnProfileView(viewedUid, nickname));
+      }
     }catch(err){
       console.error(err);
       nickEl.textContent = 'Не удалось загрузить профиль';
@@ -331,15 +334,21 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
-  const isAdmin = !!(ADMIN_EMAIL && user.email &&
+  const isOwner = !!(ADMIN_EMAIL && user.email &&
     user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+  // Владелец обычно сразу улетает в admin.html — но если он специально
+  // зашёл по ссылке "Мой аккаунт" из панели (account.html?asUser=1),
+  // даём ему полноценно попользоваться обычным кабинетом, как игроку.
+  const wantsUserView = new URLSearchParams(window.location.search).get('asUser') === '1';
 
-  if(isAdmin){
+  if(isOwner && !wantsUserView){
     window.location.href = 'admin.html';
     return;
   }
 
-  // Забаненный аккаунт: не показываем кабинет, сразу выходим из системы
+  // Забаненный аккаунт: не показываем кабинет, сразу выходим из системы.
+  // Заодно читаем роль (модератор?), чтобы показать кнопку в панель организатора.
+  let role = null;
   try{
     const snap = await db.collection('users').doc(user.uid).get();
     if(snap.exists && snap.data().banned){
@@ -350,6 +359,7 @@ auth.onAuthStateChanged(async (user) => {
       loginStatus.className = 'form-msg error';
       return;
     }
+    if(snap.exists) role = snap.data().role || null;
   }catch(err){
     console.warn('Не удалось проверить статус аккаунта', err);
   }
@@ -358,8 +368,11 @@ auth.onAuthStateChanged(async (user) => {
   cabinetSection.style.display = 'block';
   cabinetSection.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
   cabinetEmail.textContent = user.email || '—';
+  const toAdminBtn = document.getElementById('to-admin-btn');
+  if(toAdminBtn && (isOwner || role === 'moderator')) toAdminBtn.style.display = 'inline-flex';
   loadProfile(user.uid);
   loadApplicationStatus(user.uid);
+  if(typeof loadFriendsSection === 'function') loadFriendsSection(user.uid);
 });
 
 /* ---------------------------------------------------------

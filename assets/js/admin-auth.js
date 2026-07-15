@@ -10,9 +10,22 @@ const contentSection = document.getElementById('admin-content');
 const loginForm = document.getElementById('login-form');
 const loginStatus = document.getElementById('login-status');
 const logoutBtn = document.getElementById('logout-btn');
-const appsList = document.getElementById('applications-list');
+const appsListPending = document.getElementById('applications-list-pending');
+const appsListApproved = document.getElementById('applications-list-approved');
 
 let unsubscribeApps = null;
+
+/* --- подсветка новых заявок ---
+   ID заявок, которые организатор уже "отметил просмотренными" (кнопкой
+   "🔕 Скрыть подсветку"), храним в localStorage — подсветка новых заявок
+   персональна для этого браузера/устройства. */
+function getSeenPendingIds(){
+  try{ return new Set(JSON.parse(localStorage.getItem('ist_seen_pending_apps') || '[]')); }
+  catch(e){ return new Set(); }
+}
+function saveSeenPendingIds(set){
+  try{ localStorage.setItem('ist_seen_pending_apps', JSON.stringify(Array.from(set))); }catch(e){}
+}
 
 function isAdminUser(user){
   return !!(user && user.email && ADMIN_EMAIL &&
@@ -48,9 +61,11 @@ auth.onAuthStateChanged(async (user) => {
     // элементы .reveal внутри панели уже в DOM (просто были скрыты) —
     // показываем их сразу, не дожидаясь скролла
     contentSection.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
-    // раздел управления аккаунтами (баны, роли) виден только организатору
-    const usersSection = document.getElementById('users-admin-section');
-    if(usersSection) usersSection.style.display = owner ? 'block' : 'none';
+    // раздел управления аккаунтами (баны, роли) виден только организатору —
+    // модератору просто прячем саму кнопку вкладки "Аккаунты", а видимость
+    // самой секции дальше управляется общим переключателем вкладок
+    const accountsTabBtn = document.querySelector('.admin-tab-btn[data-target="accounts"]');
+    if(accountsTabBtn) accountsTabBtn.style.display = owner ? '' : 'none';
     await loadUsersCache();
     startApplicationsListener();
   }else{
@@ -216,13 +231,13 @@ function rosterToHTML(roster){
   return '';
 }
 
-function appCardHTML(doc){
+function appCardHTML(doc, isNew){
   const d = doc.data();
   const id = doc.id;
   const roster = rosterToHTML(d.roster);
   const initials = (d.teamName || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   return `
-  <div class="card app-card" data-id="${id}">
+  <div class="card app-card${isNew ? ' app-card-glow' : ''}" data-id="${id}">
     <div class="app-top">
       <div style="display:flex; align-items:center; gap:10px;">
         <div class="team-avatar" style="width:36px; height:36px; margin:0; flex:none; font-size:13px;">
@@ -230,7 +245,7 @@ function appCardHTML(doc){
         </div>
         <strong>${d.teamName || '—'}</strong>
       </div>
-      <span class="app-status-badge ${d.status}">${statusLabels[d.status] || d.status}</span>
+      <span class="app-status-badge ${d.status}">${statusLabels[d.status] || d.status}${isNew ? ' · новая' : ''}</span>
     </div>
     <div style="font-size:13px; color:var(--color-ink-soft);">
       Игра: ${d.game || '—'} · Капитан: ${d.captainName || '—'}${d.captainUid ? ' 🔗' : ''}<br>
@@ -254,23 +269,79 @@ function appCardHTML(doc){
   </div>`;
 }
 
+function updatePendingBadges(newCount){
+  const dots = [
+    document.getElementById('admin-tab-dot-applications'),
+    document.getElementById('admin-tab-dot-accounts'),
+    document.getElementById('applications-pending-dot'),
+  ];
+  dots.forEach(dot => { if(dot) dot.style.display = newCount > 0 ? 'inline-block' : 'none'; });
+}
+
 function startApplicationsListener(){
   if(unsubscribeApps) return;
   unsubscribeApps = db.collection('teamApplications')
     .orderBy('createdAt', 'desc')
     .onSnapshot((snap) => {
-      if(snap.empty){
-        appsList.innerHTML = `<div class="empty-state">Заявок пока нет.</div>`;
-        return;
-      }
-      appsList.innerHTML = snap.docs.map(appCardHTML).join('');
+      const seen = getSeenPendingIds();
+      const pendingDocs = [];
+      const approvedDocs = [];
+      snap.docs.forEach(doc => {
+        const status = doc.data().status;
+        if(status === 'approved') approvedDocs.push(doc);
+        else pendingDocs.push(doc); // pending и rejected — всё, что ещё не одобрено
+      });
+
+      const newPendingDocs = pendingDocs.filter(doc => doc.data().status === 'pending' && !seen.has(doc.id));
+      updatePendingBadges(newPendingDocs.length);
+
+      appsListPending.innerHTML = pendingDocs.length
+        ? pendingDocs.map(doc => appCardHTML(doc, doc.data().status === 'pending' && !seen.has(doc.id))).join('')
+        : `<div class="empty-state">Новых заявок нет.</div>`;
+
+      appsListApproved.innerHTML = approvedDocs.length
+        ? approvedDocs.map(doc => appCardHTML(doc, false)).join('')
+        : `<div class="empty-state">Одобренных команд пока нет.</div>`;
     }, (err) => {
       console.error(err);
-      appsList.innerHTML = `<div class="empty-state">Не удалось загрузить заявки.</div>`;
+      appsListPending.innerHTML = `<div class="empty-state">Не удалось загрузить заявки.</div>`;
+      appsListApproved.innerHTML = '';
     });
 }
 
-appsList.addEventListener('click', async (e) => {
+/* --- переключение вкладок панели и подвкладок "Заявки" --- */
+document.getElementById('admin-tabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('.admin-tab-btn');
+  if(!btn) return;
+  document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const target = btn.getAttribute('data-target');
+  document.querySelectorAll('[data-admin-tab]').forEach(sec => {
+    sec.style.display = sec.getAttribute('data-admin-tab') === target ? '' : 'none';
+  });
+});
+
+document.getElementById('applications-subtabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('.admin-subtab-btn');
+  if(!btn) return;
+  document.querySelectorAll('.admin-subtab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const sub = btn.getAttribute('data-subtab');
+  appsListPending.style.display = sub === 'pending' ? '' : 'none';
+  appsListApproved.style.display = sub === 'approved' ? '' : 'none';
+});
+
+document.getElementById('mute-pending-glow').addEventListener('click', () => {
+  const seen = getSeenPendingIds();
+  document.querySelectorAll('#applications-list-pending .app-card').forEach(card => {
+    seen.add(card.getAttribute('data-id'));
+    card.classList.remove('app-card-glow');
+  });
+  saveSeenPendingIds(seen);
+  updatePendingBadges(0);
+});
+
+async function handleAppsListClick(e){
   const linksSaveBtn = e.target.closest('.app-links-save');
   if(linksSaveBtn){
     const card = linksSaveBtn.closest('.app-card');
@@ -340,4 +411,6 @@ appsList.addEventListener('click', async (e) => {
     alert('Не получилось выполнить действие. Попробуй ещё раз.');
     btn.disabled = false;
   }
-});
+}
+appsListPending.addEventListener('click', handleAppsListClick);
+appsListApproved.addEventListener('click', handleAppsListClick);

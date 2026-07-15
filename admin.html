@@ -104,7 +104,22 @@
   <!-- КОНТЕНТ ПАНЕЛИ: показывается только после успешного входа -->
   <div id="admin-content" style="display:none;">
 
-    <section class="section container reveal">
+    <div class="admin-tabs" id="admin-tabs">
+      <button type="button" class="admin-tab-btn active" data-target="applications">
+        Заявки
+        <span class="admin-tab-dot" id="admin-tab-dot-applications" style="display:none;"></span>
+      </button>
+      <button type="button" class="admin-tab-btn" data-target="schedule">Расписание</button>
+      <button type="button" class="admin-tab-btn" data-target="tournaments">Турниры и Эло</button>
+      <button type="button" class="admin-tab-btn" data-target="news">Новости</button>
+      <button type="button" class="admin-tab-btn" data-target="accounts">
+        Аккаунты
+        <span class="admin-tab-dot" id="admin-tab-dot-accounts" style="display:none;"></span>
+      </button>
+      <a class="btn secondary" id="to-account-btn" href="account.html?asUser=1" style="margin-left:auto;">🙍 Мой аккаунт</a>
+    </div>
+
+    <section class="section container reveal" data-admin-tab="applications">
       <div class="section-head">
         <div>
           <span class="eyebrow">Модерация</span>
@@ -117,10 +132,19 @@
         <button type="button" class="btn secondary" id="refresh-users-cache" style="font-size:13px;">🔄 Обновить список аккаунтов (для ручной привязки)</button>
         <span id="refresh-users-status" style="font-size:12px; color:var(--color-ink-soft); margin-left:8px;"></span>
       </div>
-      <div class="grid cols-2" data-role="applications-list" id="applications-list"></div>
+      <div class="admin-subtabs" id="applications-subtabs">
+        <button type="button" class="admin-subtab-btn active" data-subtab="pending">
+          Новые заявки
+          <span class="admin-tab-dot" id="applications-pending-dot" style="display:none;"></span>
+        </button>
+        <button type="button" class="admin-subtab-btn" data-subtab="approved">Команды (одобренные)</button>
+        <button type="button" class="btn secondary" id="mute-pending-glow" style="font-size:12px; padding:6px 12px; margin-left:auto;" title="Отметить все текущие новые заявки просмотренными">🔕 Скрыть подсветку</button>
+      </div>
+      <div class="grid cols-2" data-role="applications-list" id="applications-list-pending"></div>
+      <div class="grid cols-2" data-role="applications-list" id="applications-list-approved" style="display:none;"></div>
     </section>
 
-    <section class="section container reveal">
+    <section class="section container reveal" data-admin-tab="schedule" style="display:none;">
       <span class="eyebrow">Расписание</span>
       <h2>Редактор расписания</h2>
       <p class="tagline">
@@ -154,7 +178,7 @@
       </div>
     </section>
 
-    <section class="section container reveal">
+    <section class="section container reveal" data-admin-tab="tournaments" style="display:none;">
       <span class="eyebrow">Турниры</span>
       <h2>Создать турнир</h2>
       <p class="tagline">
@@ -222,7 +246,7 @@
       </div>
     </section>
 
-    <section class="section container reveal">
+    <section class="section container reveal" data-admin-tab="news" style="display:none;">
       <span class="eyebrow">Новости</span>
       <h2 id="news-form-title">Добавить новость</h2>
       <p class="tagline">
@@ -290,7 +314,7 @@
       <div class="grid cols-3" id="news-admin-list"></div>
     </section>
 
-    <section class="section container reveal" id="users-admin-section">
+    <section class="section container reveal" id="users-admin-section" data-admin-tab="accounts" style="display:none;">
       <span class="eyebrow">Модерация</span>
       <h2>Аккаунты игроков</h2>
       <p class="tagline">

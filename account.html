@@ -104,7 +104,10 @@
           <div style="font-size:12px;color:var(--color-ink-soft);">Ты вошёл как</div>
           <strong id="cabinet-email">—</strong>
         </div>
-        <button class="btn secondary" id="logout-btn">Выйти</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <a class="btn secondary" id="to-admin-btn" href="admin.html" style="display:none;">🛠 Панель организатора</a>
+          <button class="btn secondary" id="logout-btn">Выйти</button>
+        </div>
       </div>
     </div>
 
@@ -175,6 +178,24 @@
         <button class="btn" id="profile-submit" type="submit">Сохранить профиль</button>
       </form>
     </div>
+
+    <div class="card contact-card" style="max-width:520px; margin-top:22px;">
+      <h3 style="margin-bottom:10px;">Люди</h3>
+      <p class="tagline" style="margin-bottom:16px;">Найди других игроков сайта по нику и добавь в друзья.</p>
+
+      <div class="form-field" style="margin-bottom:18px;">
+        <label for="friend-search-input">Поиск по нику</label>
+        <input id="friend-search-input" type="text" placeholder="Начни вводить ник..." autocomplete="off">
+      </div>
+      <div id="friend-search-results" class="friend-list"></div>
+
+      <div id="friend-requests-wrap" style="margin-top:20px;"></div>
+
+      <div style="margin-top:20px;">
+        <h4 style="margin-bottom:10px; font-size:15px;">Мои друзья</h4>
+        <div id="friends-list" class="friend-list"></div>
+      </div>
+    </div>
   </section>
 
   <!-- ПУБЛИЧНЫЙ ПРОФИЛЬ: открывается по ссылке account.html?u=UID
@@ -192,6 +213,7 @@
       <div class="profile-view-socials" id="pv-socials"></div>
       <div id="pv-faceit-stats"></div>
       <div id="pv-team-wrap"></div>
+      <div id="pv-friend-wrap" style="margin-top:14px;"></div>
     </div>
     <div style="margin-top:18px;">
       <a href="account.html" class="btn secondary small">← В свой аккаунт</a>
@@ -214,6 +236,7 @@
 <script defer src="assets/js/firebase-config.js"></script>
 <script defer src="assets/js/main.js"></script>
 <script defer src="assets/js/faceit-stats.js"></script>
+<script defer src="assets/js/friends.js"></script>
 <script defer src="assets/js/account.js"></script>
 </body>
 </html>
