@@ -3,250 +3,255 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Аккаунт</title>
-<link rel="icon" href="assets/images/favicon.png">
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<title>Личный кабинет — MLT Esports Platform</title>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
-<style>
-  .auth-tabs{ display:flex; gap:8px; margin-bottom:18px; }
-  .auth-tabs button{
-    flex:1; padding:10px 12px; border-radius:999px; border:1px solid var(--color-primary-line);
-    background:var(--color-surface-alt); color:var(--color-text); font-weight:700; font-size:13.5px;
-    cursor:pointer; transition:all .2s ease;
-  }
-  .auth-tabs button.active{ background:var(--color-accent); border-color:var(--color-accent); color:#1C1D21; }
-  #signup-form{ display:none; }
-  .cabinet-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-  .btn.secondary{ background:var(--color-surface); color:var(--color-accent-deep); border:1px solid var(--color-primary-line); }
-  .btn.small{ padding:8px 16px; font-size:13px; }
-</style>
 </head>
-<body data-page="account">
+<body>
 
-<header class="navbar">
-  <div class="container">
-    <a href="index.html" class="brand">
-      <span class="brand-mark" data-role="brand-mark">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h12v3.5c0 3.5-2.5 6-6 6s-6-2.5-6-6V3Z" stroke="currentColor" stroke-width="1.6"/><path d="M9 15.5h6v3H9v-3Z" stroke="currentColor" stroke-width="1.6"/></svg>
-      </span>
-      <span data-role="site-name">Infinity Series Tournaments</span>
-    </a>
-    <button class="nav-toggle" aria-label="Меню"><span></span><span></span><span></span></button>
-    <nav class="nav-links">
-      <a href="index.html" data-page="home">Главная</a>
-      <a href="news.html" data-page="news">Новости</a>
-      <a href="participants.html" data-page="participants">Участники</a>
-      <a href="schedule.html" data-page="schedule">Расписание</a>
-      <a href="tournaments.html" data-page="tournaments">Турниры</a>
-      <a href="register.html" data-page="register" class="nav-cta">Регистрация</a>
-      <a href="team.html" data-page="team">Организация</a>
-      <a href="account.html" data-page="account">Аккаунт</a>
-      <a href="contacts.html" data-page="contacts">Контакты</a>
+<header class="site-header">
+  <div class="header-inner">
+    <button class="brand" onclick="window.location.href='/'">
+      <img class="brand-mark" src="logo.jpg" alt="MLT Logo">
+      <span class="brand-text">MLT<small>ESPORTS PLATFORM</small></span>
+    </button>
+    <nav class="main-nav">
+      <a href="/" class="nav-link"><span data-i18n="navHome">Главная</span></a>
+      <a href="/matches.html" class="nav-link"><span data-i18n="navMatches">Матчи</span></a>
+      <a href="/rankings.html" class="nav-link"><span data-i18n="navRankings">Рейтинги</span></a>
+      <a href="/tournaments.html" class="nav-link"><span data-i18n="navTournaments">Турниры</span></a>
+      <a href="/news.html" class="nav-link"><span data-i18n="navNews">Новости</span></a>
+      <a href="/contacts.html" class="nav-link"><span data-i18n="navContacts">Контакты</span></a>
     </nav>
+    <div class="header-actions">
+      <button class="btn ghost sm" id="langToggle">EN</button>
+      <button class="icon-btn" id="adminPanelBtn" title="Админ-панель" data-i18n-title="adminPanelTitle" onclick="window.location.href='/admin.html'" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v6c0 5 4 8.5 9 9 5-.5 9-4 9-9V7l-9-5Z" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+      <button class="btn ghost" id="openAuth">Войти</button>
+      <button class="hamburger-btn" id="mobileMenuBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <nav class="mobile-nav">
+      <a href="/" class="mobile-nav-link"><span data-i18n="navHome">Главная</span></a>
+      <a href="/matches.html" class="mobile-nav-link"><span data-i18n="navMatches">Матчи</span></a>
+      <a href="/rankings.html" class="mobile-nav-link"><span data-i18n="navRankings">Рейтинги</span></a>
+      <a href="/tournaments.html" class="mobile-nav-link"><span data-i18n="navTournaments">Турниры</span></a>
+      <a href="/news.html" class="mobile-nav-link"><span data-i18n="navNews">Новости</span></a>
+      <a href="/contacts.html" class="mobile-nav-link"><span data-i18n="navContacts">Контакты</span></a>
+    </nav>
+    <div class="mobile-menu-actions">
+      <button class="btn ghost sm" id="mobileLangToggle">EN</button>
+      <button class="icon-btn" id="mobileAdminPanelBtn" onclick="window.location.href='/admin.html'" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v6c0 5 4 8.5 9 9 5-.5 9-4 9-9V7l-9-5Z" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+      <button class="btn primary" id="mobileOpenAuth">Войти</button>
+    </div>
   </div>
 </header>
 
-<main class="page-surface">
+<main>
+  <div class="page-head">
+    <h1 data-i18n="accountTitle">Личный кабинет</h1>
+  </div>
 
-  <!-- ЭКРАН ВХОДА/РЕГИСТРАЦИИ: показывается, пока никто не вошёл -->
-  <section class="section container reveal" id="auth-section">
-    <span class="eyebrow">Личный кабинет</span>
-    <h1>Аккаунт</h1>
-    <p class="tagline">Войди или создай аккаунт. Если войти под данными организатора — сайт сам откроет панель администратора.</p>
+  <!-- Показывается, если пользователь не вошёл в аккаунт -->
+  <div id="accountGate" class="panel-box" style="max-width:420px; margin:24px 0 60px;">
+    <p class="tagline" style="margin-bottom:16px;" data-i18n="accountLoginRequired">Войдите в аккаунт, чтобы открыть личный кабинет.</p>
+    <button class="btn primary" id="acOpenAuthBtn" type="button" data-i18n="accountBtnLogin">Войти</button>
+  </div>
 
-    <div class="card contact-card" style="max-width:420px;">
-      <div class="auth-tabs">
-        <button type="button" id="tab-login" class="active">Войти</button>
-        <button type="button" id="tab-signup">Создать аккаунт</button>
+  <!-- Сам кабинет: показывается только вошедшим пользователям -->
+  <div id="accountShell" style="display:none;">
+
+    <div class="account-hero">
+      <div class="ac-photo-box" id="acPhotoBox">
+        <span class="ac-photo-initial" id="acPhotoInitial">?</span>
+        <div class="ac-photo-upload">
+          <label for="acPhotoInput" id="acPhotoUploadLabel" data-i18n="accountUploadPhoto">Загрузить фото</label>
+          <input type="file" id="acPhotoInput" accept="image/*">
+        </div>
       </div>
-
-      <form id="login-form">
-        <div class="form-field">
-          <label for="login-email">Email</label>
-          <input id="login-email" name="email" type="email" required autocomplete="username">
+      <div class="account-hero-info">
+        <h1 id="acHeroName">—</h1>
+        <div class="account-hero-meta">
+          <span class="account-role-badge" id="acHeroRole">—</span>
+          <span id="acHeroSince"></span>
         </div>
-        <div class="form-field">
-          <label for="login-password">Пароль</label>
-          <input id="login-password" name="password" type="password" required autocomplete="current-password">
-        </div>
-        <div id="login-status" style="margin-bottom:14px; font-size:14px;"></div>
-        <button class="btn" type="submit">Войти</button>
-      </form>
-
-      <form id="signup-form">
-        <div class="form-field">
-          <label for="signup-email">Email</label>
-          <input id="signup-email" name="email" type="email" required autocomplete="username">
-        </div>
-        <div class="form-field">
-          <label for="signup-password">Пароль</label>
-          <input id="signup-password" name="password" type="password" required minlength="6" autocomplete="new-password">
-        </div>
-        <div class="form-field">
-          <label for="signup-password2">Повтори пароль</label>
-          <input id="signup-password2" name="password2" type="password" required minlength="6" autocomplete="new-password">
-        </div>
-        <div id="signup-status" style="margin-bottom:14px; font-size:14px;"></div>
-        <button class="btn" type="submit">Создать аккаунт</button>
-      </form>
-    </div>
-  </section>
-
-  <!-- ЛИЧНЫЙ КАБИНЕТ: показывается только после входа обычным пользователем
-       (если вошедший — администратор, сайт сразу перенаправит на admin.html) -->
-  <section class="section container reveal" id="cabinet-section" style="display:none;">
-    <span class="eyebrow">Личный кабинет</span>
-    <h1>Добро пожаловать</h1>
-    <div class="card contact-card" style="max-width:420px; margin-bottom:22px;">
-      <div class="cabinet-row">
-        <div>
-          <div style="font-size:12px;color:var(--color-ink-soft);">Ты вошёл как</div>
-          <strong id="cabinet-email">—</strong>
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <a class="btn secondary" id="to-admin-btn" href="admin.html" style="display:none;">🛠 Панель организатора</a>
-          <button class="btn secondary" id="logout-btn">Выйти</button>
-        </div>
+        <p class="form-note" id="acPhotoNote" style="margin-bottom:0;" data-i18n="accountPhotoHint">JPG/PNG, автоматически сжимается перед сохранением</p>
       </div>
     </div>
 
-    <!-- Статус заявки команды: показывается, если ник этого аккаунта совпадает
-         с капитаном или игроком состава в какой-либо заявке. После одобрения
-         тут же появится ссылка на кабинет команды. -->
-    <div id="application-status-wrap" style="max-width:520px; margin-bottom:22px;"></div>
-
-    <div class="card contact-card" style="max-width:520px;">
-      <h3 style="margin-bottom:16px;">Профиль</h3>
-      <p class="tagline" style="margin-bottom:18px;">Ник и аватар видны другим — например, если тебя впишут в состав команды на регистрации, на странице «Участники» появится ссылка на этот профиль.</p>
-
-      <form id="profile-form">
-        <div class="form-field">
-          <label for="pNickname">Ник *</label>
-          <input id="pNickname" name="nickname" type="text" required maxlength="30" placeholder="Как тебя видят остальные">
-        </div>
-
-        <div class="form-field">
-          <label>Аватар</label>
-          <div class="avatar-upload" id="profile-avatar-upload">
-            <div class="avatar-preview" id="profile-avatar-preview">?</div>
-            <div class="avatar-controls">
-              <input type="file" id="pAvatarFile" accept="image/*">
-              <span class="avatar-hint">JPG/PNG/WEBP, автоматически сожмётся</span>
-              <button type="button" class="avatar-remove" id="profile-avatar-remove" style="display:none;">Убрать аватар</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-field">
-          <label for="pDescription">О себе (необязательно)</label>
-          <textarea id="pDescription" name="description" maxlength="300" placeholder="Пара слов о себе, роль в игре и т.д."></textarea>
-        </div>
-
-        <div class="form-field">
-          <label for="pFaceitElo">Эло на Faceit *</label>
-          <input id="pFaceitElo" name="faceitElo" type="number" min="1" max="10000" step="1" required placeholder="Например: 1450">
-          <div class="tagline" style="margin-top:6px; font-size:12.5px;">
-            Указывай реальное текущее эло со своего профиля Faceit — при регистрации команды оно подставится
-            автоматически и попадёт в средний рейтинг состава. Неверные данные проверяются организаторами.
-          </div>
-        </div>
-
-        <div class="form-field">
-          <label>Соцсети (необязательно)</label>
-          <div class="social-fields">
-            <div class="form-field">
-              <label for="pTelegram">Telegram</label>
-              <input id="pTelegram" type="text" maxlength="120" placeholder="@nickname или ссылка">
-            </div>
-            <div class="form-field">
-              <label for="pDiscord">Discord</label>
-              <input id="pDiscord" type="text" maxlength="120" placeholder="username">
-            </div>
-            <div class="form-field">
-              <label for="pVk">Faceit</label>
-              <input id="pVk" type="text" maxlength="120" placeholder="ссылка на профиль">
-            </div>
-            <div class="form-field">
-              <label for="pTwitch">Twitch</label>
-              <input id="pTwitch" type="text" maxlength="120" placeholder="ссылка на канал">
-            </div>
-          </div>
-        </div>
-
-        <div class="form-field">
-          <label for="pFriendsPrivacy">Кто может добавлять меня в друзья</label>
-          <select id="pFriendsPrivacy">
-            <option value="everyone">Все пользователи сайта</option>
-            <option value="nobody">Никто — закрыть приём заявок</option>
-          </select>
-        </div>
-
-        <div id="profile-status" style="margin-bottom:14px; font-size:14px;"></div>
-        <button class="btn" id="profile-submit" type="submit">Сохранить профиль</button>
-      </form>
+    <div class="ac-tabs">
+      <button type="button" class="ac-tab-btn active" data-ac-tab="info" data-i18n="accountTabInfo">Инфо</button>
+      <button type="button" class="ac-tab-btn" data-ac-tab="team" data-i18n="accountTabTeam">Моя команда</button>
+      <button type="button" class="ac-tab-btn" data-ac-tab="faceit" data-i18n="accountTabFaceit">Faceit и контакты</button>
     </div>
 
-    <div class="card contact-card" style="max-width:520px; margin-top:22px;">
-      <h3 style="margin-bottom:10px;">Люди</h3>
-      <p class="tagline" style="margin-bottom:16px;">Найди других игроков сайта по нику и добавь в друзья.</p>
-
-      <div class="form-field" style="margin-bottom:18px;">
-        <label for="friend-search-input">Поиск по нику</label>
-        <input id="friend-search-input" type="text" placeholder="Начни вводить ник..." autocomplete="off">
+    <!-- Вкладка: Инфо -->
+    <div class="ac-tab-panel active" id="ac-tab-info">
+      <div class="panel-box" style="max-width:460px;">
+        <h3 data-i18n="accountNicknameTitle">Никнейм</h3>
+        <form id="acNicknameForm" style="display:flex; flex-direction:column; gap:12px;">
+          <div class="field"><label data-i18n="labelNickname">Никнейм</label><input type="text" id="acNickname" required></div>
+          <button class="btn primary" type="submit" data-i18n="btnSaveNickname">Сохранить никнейм</button>
+          <p class="form-note" id="acNicknameNote"></p>
+        </form>
       </div>
-      <div id="friend-search-results" class="friend-list"></div>
+      <button class="btn danger" id="acLogoutBtn" type="button" style="margin-top:20px; max-width:460px; width:100%;" data-i18n="accountLogoutFull">Выйти из аккаунта</button>
+    </div>
 
-      <div id="friend-requests-wrap" style="margin-top:20px;"></div>
+    <!-- Вкладка: Моя команда -->
+    <div class="ac-tab-panel" id="ac-tab-team">
+      <div id="acTeamBox" style="max-width:520px;"></div>
+    </div>
 
-      <div style="margin-top:20px;">
-        <h4 style="margin-bottom:10px; font-size:15px;">Мои друзья</h4>
-        <div id="friends-list" class="friend-list"></div>
+    <!-- Вкладка: Faceit и контакты -->
+    <div class="ac-tab-panel" id="ac-tab-faceit">
+      <div class="panel-box" style="max-width:460px;">
+        <h3 data-i18n="contactsSectionTitle">Контакты</h3>
+        <form id="acContactsForm" style="display:flex; flex-direction:column; gap:12px;">
+          <div class="field"><label data-i18n="labelTelegram">Telegram</label><input type="text" id="acTelegram" placeholder="@username"></div>
+          <div class="field"><label data-i18n="labelDiscord">Discord</label><input type="text" id="acDiscord" placeholder="username"></div>
+          <div class="field"><label data-i18n="labelFaceitNickname">Ник на Faceit</label><input type="text" id="acFaceitNickname" placeholder="nickname"></div>
+          <button class="btn primary sm" type="submit" data-i18n="btnSaveContacts">Сохранить контакты</button>
+          <p class="form-note" id="acContactsNote"></p>
+        </form>
+        <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line, rgba(255,255,255,0.08));">
+          <h3 style="margin-bottom:8px;" data-i18n="faceitBlockTitle">Faceit</h3>
+          <div id="acFaceitStats"></div>
+          <button class="btn ghost sm" id="acUpdateFaceitBtn" type="button" style="margin-top:10px; width:100%;" data-i18n="btnUpdateFaceit">Обновить Elo с Faceit</button>
+          <p class="form-note" id="acFaceitNote"></p>
+        </div>
       </div>
-
-      <div id="blocked-list-wrap" class="friend-list" style="margin-top:20px;"></div>
     </div>
-  </section>
 
-  <!-- ПУБЛИЧНЫЙ ПРОФИЛЬ: открывается по ссылке account.html?u=UID
-       (например, из состава команды на странице «Участники»), доступен всем,
-       без входа в аккаунт. -->
-  <section class="section container reveal" id="profile-view-section" style="display:none;">
-    <span class="eyebrow">Профиль игрока</span>
-    <h1 id="pv-nickname">—</h1>
-    <div class="card contact-card" style="max-width:520px;">
-      <div class="profile-view-head">
-        <div class="profile-view-avatar" id="pv-avatar">?</div>
-      </div>
-      <p id="pv-description" style="color:var(--color-ink-soft); margin-top:14px;"></p>
-      <div id="pv-elo" style="margin-top:8px; font-weight:700;"></div>
-      <div class="profile-view-socials" id="pv-socials"></div>
-      <div id="pv-faceit-stats"></div>
-      <div id="pv-team-wrap"></div>
-      <div id="pv-friend-wrap" style="margin-top:14px;"></div>
-    </div>
-    <div style="margin-top:18px;">
-      <a href="account.html" class="btn secondary small">← В свой аккаунт</a>
-    </div>
-  </section>
-
+  </div>
 </main>
 
-<footer class="footer">
-  <div class="container">
-    <span>© 2026 <span data-role="site-name">Infinity Series Tournaments</span></span>
-    <a data-role="footer-email" href="#"></a>
-    <a class="footer-faceit-btn" href="https://www.faceit.com/ru/organizers/a6bb0df2-dc1e-46ce-8d1d-ac4a4af497b9/INFINITY%20Series%20Tournments" target="_blank" rel="noopener">Faceit турнир</a>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="brand" style="cursor:default;">
+      <img class="brand-mark" src="logo.jpg" alt="MLT Logo">
+      <span class="brand-text" style="font-size:15px;">MLT</span>
+    </div>
+    <nav class="footer-links">
+      <button onclick="window.location.href='/'"><span data-i18n="navHome">Главная</span></button>
+      <button onclick="window.location.href='/matches.html'"><span data-i18n="navMatches">Матчи</span></button>
+      <button onclick="window.location.href='/rankings.html'"><span data-i18n="navRankings">Рейтинги</span></button>
+      <button onclick="window.location.href='/tournaments.html'"><span data-i18n="navTournaments">Турниры</span></button>
+      <button onclick="window.location.href='/news.html'"><span data-i18n="navNews">Новости</span></button>
+      <button onclick="window.location.href='/contacts.html'"><span data-i18n="navContacts">Контакты</span></button>
+    </nav>
+    <div class="footer-social">
+      <a href="#" data-social="telegram" target="_blank" rel="noopener">TG</a>
+      <a href="#" data-social="discord" target="_blank" rel="noopener">DC</a>
+      <a href="#" data-social="youtube" target="_blank" rel="noopener">YT</a>
+      <a href="#" data-social="twitch" target="_blank" rel="noopener">TW</a>
+      <a href="#" data-social="vk" target="_blank" rel="noopener">VK</a>
+    </div>
+    <p data-i18n="footerRights">All rights reserved — MLT</p>
   </div>
 </footer>
 
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script defer src="assets/js/firebase-config.js"></script>
-<script defer src="assets/js/main.js"></script>
-<script defer src="assets/js/faceit-stats.js"></script>
-<script defer src="assets/js/friends.js"></script>
-<script defer src="assets/js/account.js"></script>
+<!-- ============ МОДАЛКА: ВХОД / РЕГИСТРАЦИЯ ============ -->
+<div class="modal-backdrop" id="authModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="authModal" aria-label="Закрыть">×</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-auth-panel="login" data-i18n="authTabLogin">Вход</button>
+      <button class="auth-tab" data-auth-panel="register" data-i18n="authTabRegister">Регистрация</button>
+    </div>
+    <div class="auth-panel active" id="loginPanel">
+      <form id="loginForm" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label data-i18n="labelEmail">Email</label><input type="email" id="loginEmail" required></div>
+        <div class="field"><label data-i18n="labelPassword">Пароль</label><input type="password" id="loginPassword" required></div>
+        <button class="btn primary" type="submit" data-i18n="btnLogin">Войти</button>
+        <p class="form-note" id="authLoginMsg"></p>
+      </form>
+    </div>
+    <div class="auth-panel" id="registerPanel">
+      <form id="registerForm" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label data-i18n="labelEmail">Email</label><input type="email" id="regEmail" required></div>
+        <div class="field"><label data-i18n="labelPassword">Пароль</label><input type="password" id="regPassword" required></div>
+        <div class="field"><label data-i18n="labelNickname">Никнейм</label><input type="text" id="regNickname" placeholder="Оставьте пустым для автогенерации" data-i18n-placeholder="placeholderNicknameAuto"></div>
+        <div id="regCaptcha" class="captcha-box"></div>
+        <button class="btn primary" type="submit" data-i18n="btnCreateAccount">Создать аккаунт</button>
+        <p class="form-note" id="authRegisterMsg"></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: СОЗДАНИЕ КОМАНДЫ ============ -->
+<div class="modal-backdrop" id="createTeamModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="createTeamModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="createTeamTitle">Создать команду</h2>
+    <p class="form-note" id="ctNote" style="margin-bottom:14px;"></p>
+    <form id="createTeamForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label data-i18n="labelTeamName">Название команды</label><input type="text" id="ctName" required></div>
+      <div class="field"><label data-i18n="labelLogoOptional">Логотип (необязательно)</label><input type="file" id="ctLogo" accept="image/*"></div>
+      <div class="field"><label data-i18n="labelMainRoster">Основной состав — 5 игроков</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="ctMain0" placeholder="Ник игрока 1" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain1" placeholder="Ник игрока 2" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain2" placeholder="Ник игрока 3" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain3" placeholder="Ник игрока 4" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain4" placeholder="Ник игрока 5" data-i18n-placeholder="placeholderMainPlayer" required>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="labelReserveRoster">Запасные — до 2 (необязательно)</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="ctReserve0" placeholder="Ник запасного 1" data-i18n-placeholder="placeholderReservePlayer">
+          <input type="text" id="ctReserve1" placeholder="Ник запасного 2" data-i18n-placeholder="placeholderReservePlayer">
+        </div>
+      </div>
+      <button class="btn primary" type="submit" id="ctSubmitBtn" data-i18n="btnCreateTeamSubmit">Создать команду</button>
+      <p class="form-note" id="ctFormNote"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: РЕДАКТИРОВАНИЕ СОСТАВА КОМАНДЫ (владелец) ============ -->
+<div class="modal-backdrop" id="editTeamModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="editTeamModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="editTeamTitle">Редактировать состав</h2>
+    <form id="editTeamForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label data-i18n="labelTeamName">Название команды</label><input type="text" id="etName" required></div>
+      <div class="field"><label data-i18n="labelLogoOptional">Логотип (необязательно)</label><input type="file" id="etLogo" accept="image/*"></div>
+      <div class="field"><label data-i18n="labelMainRoster">Основной состав — 5 игроков</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="etMain0" placeholder="Ник игрока 1" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain1" placeholder="Ник игрока 2" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain2" placeholder="Ник игрока 3" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain3" placeholder="Ник игрока 4" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain4" placeholder="Ник игрока 5" data-i18n-placeholder="placeholderMainPlayer" required>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="labelReserveRoster">Запасные — до 2 (необязательно)</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="etReserve0" placeholder="Ник запасного 1" data-i18n-placeholder="placeholderReservePlayer">
+          <input type="text" id="etReserve1" placeholder="Ник запасного 2" data-i18n-placeholder="placeholderReservePlayer">
+        </div>
+      </div>
+      <button class="btn primary" type="submit" id="etSubmitBtn" data-i18n="btnSaveTeam">Сохранить изменения</button>
+      <p class="form-note" id="etFormNote"></p>
+    </form>
+  </div>
+</div>
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="config.js"></script>
+<script type="module" src="assets/js/firebase-config.js"></script>
+<script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

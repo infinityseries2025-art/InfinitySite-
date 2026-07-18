@@ -3,349 +3,474 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Панель организатора</title>
-<link rel="icon" href="assets/images/favicon.png">
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<title>Админ-панель — MLT Esports Platform</title>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
-<style>
-  .admin-table{ width:100%; border-collapse:collapse; margin-top:10px; }
-  .admin-table th{ text-align:left; font-size:12px; color:var(--color-ink-soft); padding:6px 8px; }
-  .admin-table td{ padding:6px 8px; vertical-align:top; }
-  .admin-table input, .admin-table select{
-    width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--color-primary-line);
-    font-family:var(--font-body); font-size:13px; background:var(--color-surface-alt); color:var(--color-text);
-  }
-  .row-remove{ background:none; border:none; color:var(--status-live); font-weight:800; cursor:pointer; font-size:16px; }
-  .admin-actions{ display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
-  .btn.secondary{ background:var(--color-surface); color:var(--color-accent-deep); border:1px solid var(--color-primary-line); }
-  #tournament-form textarea{ min-height:130px; }
-  .app-card{ padding:16px 18px; display:flex; flex-direction:column; gap:8px; }
-  .app-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
-  .app-actions{ display:flex; gap:8px; flex-wrap:wrap; }
-  .app-actions button{
-    padding:7px 14px; border-radius:999px; border:1px solid var(--color-primary-line);
-    background:var(--color-surface-alt); color:var(--color-text); font-weight:700; font-size:12.5px; cursor:pointer;
-    transition:all .2s ease;
-  }
-  .app-actions .approve:hover{ background:var(--status-upcoming); border-color:var(--status-upcoming); color:#1C1D21; }
-  .app-actions .reject:hover{ background:var(--status-live); border-color:var(--status-live); color:#fff; }
-  .app-actions .delete:hover{ background:#3a2b2b; border-color:var(--status-live); color:var(--status-live); }
-  .app-status-badge{ padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; }
-  .app-status-badge.pending{ background:var(--status-upcoming); color:#1C1D21; }
-  .app-status-badge.approved{ background:var(--color-accent); color:#1C1D21; }
-  .app-status-badge.rejected{ background:var(--status-live); color:#fff; }
-
-  /* --- полировка редактора расписания --- */
-  .btn:disabled{ opacity:.6; cursor:not-allowed; transform:none !important; box-shadow:var(--shadow-tight) !important; }
-  #admin-rows tr{ transition:background .2s ease; border-bottom:1px solid var(--color-primary-line); }
-  #admin-rows tr:hover{ background:rgba(255,172,188,0.05); }
-  #admin-rows .empty-state{ margin:6px 0; }
-  @keyframes rowAddedGlow{
-    0%{ background:rgba(255,172,188,0.28); }
-    100%{ background:transparent; }
-  }
-  .row-just-added{ animation:rowAddedGlow 1.6s ease-out; }
-  .admin-table input:focus, .admin-table select:focus{
-    outline:none; border-color:var(--color-accent); box-shadow:0 0 0 3px var(--color-accent-glow);
-  }
-  .row-remove{ transition:transform .15s ease, color .15s ease; }
-  .row-remove:hover{ transform:scale(1.15); color:#fff; }
-  #add-row{ transition:background .25s ease, transform .2s var(--ease), box-shadow .25s ease; }
-</style>
 </head>
-<body data-page="admin">
+<body>
 
-<header class="navbar">
-  <div class="container">
-    <a href="index.html" class="brand">
-      <span class="brand-mark" data-role="brand-mark">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h12v3.5c0 3.5-2.5 6-6 6s-6-2.5-6-6V3Z" stroke="currentColor" stroke-width="1.6"/><path d="M9 15.5h6v3H9v-3Z" stroke="currentColor" stroke-width="1.6"/></svg>
-      </span>
-      <span data-role="site-name">Infinity Series Tournaments</span>
-    </a>
-    <button class="nav-toggle" aria-label="Меню"><span></span><span></span><span></span></button>
-    <nav class="nav-links">
-      <a href="index.html" data-page="home">Главная</a>
-      <a href="news.html" data-page="news">Новости</a>
-      <a href="participants.html" data-page="participants">Участники</a>
-      <a href="schedule.html" data-page="schedule">Расписание</a>
-      <a href="tournaments.html" data-page="tournaments">Турниры</a>
-      <a href="register.html" data-page="register" class="nav-cta">Регистрация</a>
-      <a href="team.html" data-page="team">Организация</a>
-      <a href="contacts.html" data-page="contacts">Контакты</a>
+<header class="site-header">
+  <div class="header-inner">
+    <button class="brand" onclick="window.location.href='/'">
+      <img class="brand-mark" src="logo.jpg" alt="MLT Logo">
+      <span class="brand-text">MLT<small>ESPORTS PLATFORM</small></span>
+    </button>
+    <nav class="main-nav">
+      <a href="/" class="nav-link"><span data-i18n="navHome">Главная</span></a>
+      <a href="/matches.html" class="nav-link"><span data-i18n="navMatches">Матчи</span></a>
+      <a href="/rankings.html" class="nav-link"><span data-i18n="navRankings">Рейтинги</span></a>
+      <a href="/tournaments.html" class="nav-link"><span data-i18n="navTournaments">Турниры</span></a>
+      <a href="/news.html" class="nav-link"><span data-i18n="navNews">Новости</span></a>
+      <a href="/contacts.html" class="nav-link"><span data-i18n="navContacts">Контакты</span></a>
     </nav>
+    <div class="header-actions">
+      <button class="btn ghost sm" id="langToggle">EN</button>
+      <button class="btn ghost" id="openAuth">Войти</button>
+      <button class="hamburger-btn" id="mobileMenuBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <nav class="mobile-nav">
+      <a href="/" class="mobile-nav-link"><span data-i18n="navHome">Главная</span></a>
+      <a href="/matches.html" class="mobile-nav-link"><span data-i18n="navMatches">Матчи</span></a>
+      <a href="/rankings.html" class="mobile-nav-link"><span data-i18n="navRankings">Рейтинги</span></a>
+      <a href="/tournaments.html" class="mobile-nav-link"><span data-i18n="navTournaments">Турниры</span></a>
+      <a href="/news.html" class="mobile-nav-link"><span data-i18n="navNews">Новости</span></a>
+      <a href="/contacts.html" class="mobile-nav-link"><span data-i18n="navContacts">Контакты</span></a>
+    </nav>
+    <div class="mobile-menu-actions">
+      <button class="btn ghost sm" id="mobileLangToggle">EN</button>
+      <button class="btn primary" id="mobileOpenAuth">Войти</button>
+    </div>
   </div>
 </header>
 
-<main class="page-surface">
-
-  <!-- ЭКРАН ВХОДА: показывается, пока организатор не авторизован -->
-  <section class="section container reveal" id="admin-login">
-    <span class="eyebrow">Только для организатора</span>
-    <h1>Вход в панель</h1>
-    <p class="tagline">Эта страница защищена — доступ только у аккаунта организатора, созданного в Firebase Authentication.</p>
+<main>
+  <!-- ЭКРАН ВХОДА: показывается, пока админ не авторизован -->
+  <section class="section" id="admin-login">
+    <div class="page-head">
+      <span class="eyebrow">Только для администратора</span>
+      <h1>Вход в панель</h1>
+    </div>
+    <p class="tagline">Эта страница защищена — доступ только у аккаунта администратора.</p>
     <div class="card contact-card" style="max-width:420px;">
-      <form id="login-form">
-        <div class="form-field">
-          <label for="login-email">Email</label>
-          <input id="login-email" name="email" type="email" required autocomplete="username">
-        </div>
-        <div class="form-field">
-          <label for="login-password">Пароль</label>
-          <input id="login-password" name="password" type="password" required autocomplete="current-password">
-        </div>
-        <div id="login-status" style="margin-bottom:14px; font-size:14px;"></div>
-        <button class="btn" type="submit">Войти</button>
+      <form id="admin-login-form">
+        <div class="field"><label>Email</label><input type="email" id="admin-login-email" required></div>
+        <div class="field"><label>Пароль</label><input type="password" id="admin-login-password" required></div>
+        <div id="admin-login-status" style="margin-bottom:14px; font-size:14px;"></div>
+        <button class="btn primary" type="submit">Войти</button>
       </form>
     </div>
   </section>
 
   <!-- КОНТЕНТ ПАНЕЛИ: показывается только после успешного входа -->
   <div id="admin-content" style="display:none;">
-
-    <div class="admin-tabs" id="admin-tabs">
-      <button type="button" class="admin-tab-btn active" data-target="applications">
+    <div class="page-head">
+      <h1 data-i18n="adminPanelTitle">Админ-панель</h1>
+      <button class="btn ghost" id="admin-logout-btn">Выйти</button>
+    </div>
+    <div class="admin-note" data-i18n="adminManaging">Управление реальными данными сайта (Firestore).</div>
+    <div class="admin-shell">
+    <div class="admin-side">
+      <button class="admin-link active" data-admin="requests" data-i18n="adminTabRequests">
         📋 Заявки
-        <span class="admin-tab-dot" id="admin-tab-dot-applications" style="display:none;"></span>
+        <span class="admin-tab-dot" id="admin-tab-dot-requests" style="display:none;"></span>
       </button>
-      <button type="button" class="admin-tab-btn" data-target="schedule">🗓️ Расписание</button>
-      <button type="button" class="admin-tab-btn" data-target="tournaments">🏆 Турниры и Эло</button>
-      <button type="button" class="admin-tab-btn" data-target="news">📰 Новости</button>
-      <button type="button" class="admin-tab-btn" data-target="accounts">
+      <button class="admin-link" data-admin="teams" data-i18n="adminTabTeams">
+        Команды
+        <span class="admin-tab-dot" id="admin-tab-dot-teams" style="display:none;"></span>
+      </button>
+      <button class="admin-link" data-admin="players" data-i18n="adminTabPlayers">Игроки</button>
+      <button class="admin-link" data-admin="matches" data-i18n="adminTabMatches">Матчи</button>
+      <button class="admin-link" data-admin="tournaments" data-i18n="adminTabTournaments">Турниры</button>
+      <button class="admin-link" data-admin="news" data-i18n="adminTabNews">Новости</button>
+      <button class="admin-link" data-admin="bracket" data-i18n="adminTabBracket">Сетка турниров</button>
+      <button class="admin-link" data-admin="accounts">
         👥 Аккаунты
         <span class="admin-tab-dot" id="admin-tab-dot-accounts" style="display:none;"></span>
       </button>
-      <a class="btn secondary" id="to-account-btn" href="account.html?asUser=1" style="margin-left:auto;">🙍 Мой аккаунт</a>
     </div>
-
-    <section class="section container reveal" data-admin-tab="applications">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">Модерация</span>
-          <h2>Заявки на участие</h2>
+    <div class="admin-main">
+      <div class="admin-panel active" id="admin-requests">
+        <div class="admin-toolbar">
+          <h2 data-i18n="adminTabRequests">Заявки на регистрацию</h2>
         </div>
-        <button class="btn secondary" id="logout-btn">Выйти</button>
+        <p class="tagline" style="margin-bottom:12px;">Одобренные заявки сразу добавляют команды в турнир. Отклонённые — не видны никому.</p>
+        <div class="admin-subtabs" id="requests-subtabs">
+          <button type="button" class="admin-subtab-btn active" data-subtab="pending">
+            Новые заявки
+            <span class="admin-tab-dot" id="requests-pending-dot" style="display:none;"></span>
+          </button>
+          <button type="button" class="admin-subtab-btn" data-subtab="approved">Одобренные</button>
+          <button type="button" class="btn ghost sm" id="mute-requests-glow" style="font-size:12px; padding:6px 12px; margin-left:auto;" title="Отметить все текущие новые заявки просмотренными">🔕 Скрыть подсветку</button>
+        </div>
+        <div class="grid cols-2" id="requests-list-pending"></div>
+        <div class="grid cols-2" id="requests-list-approved" style="display:none;"></div>
       </div>
-      <p class="tagline" style="margin-bottom:12px;">Одобренные заявки сразу появляются на странице «Участники». Отклонённые и удалённые — не видны никому, кроме тебя.</p>
-      <div style="margin-bottom:16px;">
-        <button type="button" class="btn secondary" id="refresh-users-cache" style="font-size:13px;">🔄 Обновить список аккаунтов (для ручной привязки)</button>
-        <span id="refresh-users-status" style="font-size:12px; color:var(--color-ink-soft); margin-left:8px;"></span>
+      <div class="admin-panel" id="admin-teams">
+        <div class="admin-toolbar">
+          <h2 data-i18n="adminTabTeams">Команды</h2>
+          <input type="text" id="searchTeams" placeholder="Поиск команд..." style="margin-left:auto; padding:6px 10px; border:1px solid var(--line); border-radius:var(--radius); background:var(--panel-2); color:var(--ink); font-size:13px;">
+          <button class="btn primary sm" id="btnAddTeam" data-i18n="btnAddTeamShort">+ Добавить команду</button>
+        </div>
+        <p class="tagline" style="margin-bottom:12px;">Команды, зарегистрированные игроками, сначала попадают сюда на модерацию и не видны в публичных рейтингах, пока их не одобрит администратор.</p>
+        <div class="admin-subtabs" id="teams-subtabs">
+          <button type="button" class="admin-subtab-btn active" data-teams-subtab="pending" data-i18n="adminTabTeamModeration">
+            Команды на модерации
+            <span class="admin-tab-dot" id="teams-pending-dot" style="display:none;"></span>
+          </button>
+          <button type="button" class="admin-subtab-btn" data-teams-subtab="all" data-i18n="adminAllTeams">Все команды</button>
+          <button type="button" class="btn ghost sm" id="mute-teams-glow" style="font-size:12px; padding:6px 12px; margin-left:auto;" title="Отметить все текущие команды на модерации просмотренными">🔕 Скрыть подсветку</button>
+        </div>
+        <div class="grid cols-2" id="teams-list-pending"></div>
+        <div id="adminTeamsTable" class="data-table admin-table" style="display:none;">
+          <div class="empty-state" data-i18n="loadingGeneric">Загрузка команд...</div>
+        </div>
       </div>
-      <div class="admin-subtabs" id="applications-subtabs">
-        <button type="button" class="admin-subtab-btn active" data-subtab="pending">
-          Новые заявки
-          <span class="admin-tab-dot" id="applications-pending-dot" style="display:none;"></span>
-        </button>
-        <button type="button" class="admin-subtab-btn" data-subtab="approved">Команды (одобренные)</button>
-        <button type="button" class="btn secondary" id="mute-pending-glow" style="font-size:12px; padding:6px 12px; margin-left:auto;" title="Отметить все текущие новые заявки просмотренными">🔕 Скрыть подсветку</button>
+      <div class="admin-panel" id="admin-players">
+        <div class="admin-toolbar">
+          <h2 data-i18n="adminTabPlayers">Игроки</h2>
+          <input type="text" id="searchPlayers" placeholder="Поиск игроков..." style="margin-left:auto; padding:6px 10px; border:1px solid var(--line); border-radius:var(--radius); background:var(--panel-2); color:var(--ink); font-size:13px;">
+          <button class="btn primary sm" id="btnAddPlayer" data-i18n="btnAddPlayerShort">+ Добавить игрока</button>
+        </div>
+        <div id="adminPlayersTable" class="data-table admin-table">
+          <div class="empty-state" data-i18n="loadingGeneric">Загрузка игроков...</div>
+        </div>
       </div>
-      <div class="grid cols-2" data-role="applications-list" id="applications-list-pending"></div>
-      <div class="grid cols-2" data-role="applications-list" id="applications-list-approved" style="display:none;"></div>
-    </section>
-
-    <section class="section container reveal" data-admin-tab="schedule" style="display:none;">
-      <span class="eyebrow">Расписание</span>
-      <h2>Редактор расписания</h2>
-      <p class="tagline">
-        Все изменения сохраняются автоматически в Firebase, как только ты меняешь поле — сайт подхватывает их сразу,
-        никаких файлов скачивать и коммитить в git не нужно.
-      </p>
-
-      <div class="table-scroll">
-        <table class="admin-table" id="admin-table">
-          <thead>
-            <tr>
-              <th style="width:9%">Игра</th>
-              <th style="width:16%">Стадия</th>
-              <th style="width:14%">Команда A</th>
-              <th style="width:14%">Команда B</th>
-              <th style="width:11%">Дата</th>
-              <th style="width:8%">Время</th>
-              <th style="width:10%">Статус</th>
-              <th style="width:8%">Счёт</th>
-              <th style="width:12%">Ссылка на трансляцию</th>
-              <th style="width:12%">FACEIT-комната (необязательно)</th>
-              <th style="width:4%"></th>
-            </tr>
-          </thead>
-          <tbody id="admin-rows"></tbody>
-        </table>
+      <div class="admin-panel" id="admin-matches">
+        <div class="admin-toolbar">
+          <h2 data-i18n="adminTabMatches">Матчи</h2>
+          <button class="btn primary sm" id="btnAddMatch" data-i18n="btnAddMatchShort">+ Создать матч</button>
+        </div>
+        <div id="adminMatchesTable" class="data-table admin-table">
+          <div class="empty-state" data-i18n="loadingGeneric">Загрузка матчей...</div>
+        </div>
       </div>
-
-      <div class="admin-actions">
-        <button class="btn secondary" id="add-row">+ Добавить матч</button>
+      <div class="admin-panel" id="admin-tournaments">
+        <div class="admin-toolbar">
+          <h2 data-i18n="adminTabTournaments">Турниры</h2>
+          <input type="text" id="searchTournaments" placeholder="Поиск турниров..." style="margin-left:auto; padding:6px 10px; border:1px solid var(--line); border-radius:var(--radius); background:var(--panel-2); color:var(--ink); font-size:13px;">
+          <button class="btn primary sm" id="btnAddTournament" data-i18n="btnAddTournamentShort">+ Создать турнир</button>
+        </div>
+        <div id="adminTournamentsTable" class="data-table admin-table">
+          <div class="empty-state" data-i18n="loadingGeneric">Загрузка турниров...</div>
+        </div>
       </div>
-    </section>
-
-    <section class="section container reveal" data-admin-tab="tournaments" style="display:none;">
-      <span class="eyebrow">Турниры</span>
-      <h2>Создать турнир</h2>
-      <p class="tagline">
-        Укажи название (например, «IST Season 1»), игру и список команд — по одной на строке.
-        Сетка на выбывание строится автоматически. По ходу турнира отмечай победителя в каждом матче,
-        а когда сетка дойдёт до финала — нажми «Завершить турнир»: всем участникам пересчитается
-        рейтинг Эло, а победитель автоматически получит титул «Обладатели трофея {название турнира}».
-      </p>
-      <div class="card contact-card" style="max-width:640px;">
-        <form id="tournament-form">
-          <div class="form-field">
-            <label for="tName">Название турнира</label>
-            <input id="tName" name="tName" type="text" required maxlength="80" placeholder="IST Season 1">
-          </div>
-          <div class="form-field">
-            <label for="tGame">Игра</label>
-            <select id="tGame" name="tGame" style="width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-family:var(--font-body); font-size:14px;">
-              <option value="CS2">CS2</option>
-              <option value="Dota2">Dota 2</option>
-              <option value="PUBG">PUBG</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="newGameName">Новая дисциплина отсутствует в списке?</label>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <input id="newGameName" type="text" maxlength="30" placeholder="Например: Valorant" style="flex:1; min-width:180px;">
-              <button class="btn secondary" type="button" id="add-game-btn">+ Добавить игру</button>
-            </div>
-            <div class="tagline" style="margin:6px 0 0; font-size:12.5px;">Появится во всех списках игр на сайте (расписание, турниры, регистрация).</div>
-          </div>
-          <div class="form-field">
-            <label for="tTeams">Команды (по одной на строке, минимум 2)</label>
-            <textarea id="tTeams" name="tTeams" required placeholder="Team Aurora&#10;Nova Squad&#10;Iron Wolves&#10;Crimson Owls"></textarea>
-          </div>
-          <button class="btn" type="submit">Создать турнир и сетку</button>
-        </form>
+      <div class="admin-panel" id="admin-news">
+        <div class="admin-toolbar">
+          <h2 data-i18n="adminTabNews">Новости</h2>
+          <button class="btn primary sm" id="btnAddNews" data-i18n="btnAddNewsShort">+ Опубликовать</button>
+        </div>
+        <div id="adminNewsTable" class="data-table admin-table">
+          <div class="empty-state" data-i18n="loadingGeneric">Загрузка новостей...</div>
+        </div>
       </div>
-
-      <h2 style="margin-top:36px;">Активные и завершённые турниры</h2>
-      <div id="tournaments-admin-list"></div>
-
-      <h2 style="margin-top:36px;">Рейтинг команд (Эло)</h2>
-      <p class="tagline">
-        Здесь видны все команды, которым хоть раз начислялся Эло. Если из-за опечатки или
-        тестового турнира в списке оказалась лишняя/неверная команда (например «Команда 1»,
-        «Команда 2») — поправь рейтинг вручную или удали её карточку насовсем.
-      </p>
-      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin:10px 0;">
-        <div id="teams-admin-tabs" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
-        <button type="button" class="btn secondary" id="teams-clear-all">Очистить весь рейтинг (текущая игра)</button>
+      <div class="admin-panel" id="admin-bracket">
+        <div class="admin-toolbar">
+          <h2 data-i18n="adminTabBracket">Редактор турнирной сетки</h2>
+        </div>
+        <div class="field">
+          <label>Выберите турнир</label>
+          <select id="beTournament"></select>
+        </div>
+        <div id="bePicker" style="margin-top:12px;"></div>
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn ghost sm" id="beAutoBuild">Собрать сетку из заявок</button>
+          <button class="btn ghost sm" id="beClear">Очистить сетку</button>
+          <button class="btn ghost sm" id="beSave">Сохранить сетку</button>
+          <button class="btn ghost sm" id="beSwissNextRound" style="display:none;">Сгенерировать след. раунд</button>
+          <button class="btn primary sm" id="beFinish" disabled>Завершить турнир</button>
+        </div>
+        <p class="form-note" id="beNote"></p>
+        <div id="beRounds" style="margin-top:16px;">
+          <div class="empty-state">Выберите турнир для редактирования сетки</div>
+        </div>
       </div>
-      <div class="table-scroll">
-        <table class="admin-table" id="teams-admin-table">
-          <thead>
-            <tr>
-              <th>Команда</th>
-              <th>Эло</th>
-              <th>W</th>
-              <th>L</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="teams-admin-rows"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="section container reveal" data-admin-tab="news" style="display:none;">
-      <span class="eyebrow">Новости</span>
-      <h2 id="news-form-title">Добавить новость</h2>
-      <p class="tagline">
-        Новость сразу появляется на странице «Новости» и в блоке новостей на главной.
-        Чтобы отредактировать существующую новость — нажми «Редактировать» в списке ниже,
-        поправь поля и нажми «Сохранить».
-      </p>
-      <div class="card contact-card" style="max-width:640px;">
-        <form id="news-form">
-          <input type="hidden" id="nId" value="">
-          <div class="form-field">
-            <label for="nTitle">Заголовок</label>
-            <input id="nTitle" name="nTitle" type="text" required maxlength="140" placeholder="Открыта регистрация на летний сезон">
-          </div>
-          <div class="form-field">
-            <label for="nDate">Дата</label>
-            <input id="nDate" name="nDate" type="date" required>
-          </div>
-          <div class="form-field">
-            <label for="nImageUrl">Картинка по ссылке:</label>
-            <input id="nImageUrl" name="nImageUrl" type="url" placeholder="https://i.imgur.com/xxxxx.png">
-            <small style="color:var(--color-ink-soft);display:block;margin-top:6px;">
-              Вставь прямую ссылку на картинку. Ссылки из Discord CDN не подходят — они «протухают».
-              Как получить постоянную ссылку — см. подсказку под формой.
-            </small>
-          </div>
-          <div class="form-field">
-            <label for="nImageFile">Или загрузить файл (необязательно)</label>
-            <input id="nImageFile" name="nImageFile" type="file" accept="image/*">
-            <input type="hidden" id="nImageCurrent" value="">
-            <div id="nImagePreview" style="margin-top:8px;"></div>
-          </div>
-          <div class="form-field">
-            <label for="nExcerpt">Короткое описание (для карточки)</label>
-            <input id="nExcerpt" name="nExcerpt" type="text" maxlength="200" required placeholder="Одно-два предложения для превью">
-          </div>
-          <div class="form-field">
-            <label for="nContent">Полный текст новости</label>
-            <textarea id="nContent" name="nContent" required style="min-height:130px;" placeholder="Полный текст новости"></textarea>
-          </div>
-          <div class="admin-actions" style="margin-top:0;">
-            <button class="btn" type="submit" id="news-submit-btn">Опубликовать</button>
-            <button class="btn secondary" type="button" id="news-cancel-edit" style="display:none;">Отменить редактирование</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="card contact-card" style="max-width:640px;margin-top:16px;">
-        <strong>Где взять постоянную ссылку на картинку?</strong>
-        <p class="tagline" style="margin:8px 0 0;">
-          Ссылка из Discord (cdn.discordapp.com / media.discordapp.net) работает только первое время,
-          потом Discord её отзывает — картинка на сайте пропадёт. Чтобы этого не случилось, залей
-          картинку на отдельный хостинг картинок и вставь ссылку оттуда:
+      <div class="admin-panel" id="admin-accounts">
+        <div class="admin-toolbar">
+          <h2>Аккаунты пользователей</h2>
+        </div>
+        <p class="tagline">
+          Список зарегистрированных пользователей. Здесь можно выдать статус модератора (доступ в эту панель),
+          а также забанить или удалить профиль.
         </p>
-        <ul style="margin:10px 0 0 18px;padding:0;color:var(--color-ink-soft);">
-          <li><strong>imgur.com</strong> — зайти без регистрации, перетащить файл, справа нажать
-            «Copy link» (или в контекстном меню картинки «Copy image address»). Это и есть прямая ссылка.</li>
-          <li><strong>postimages.org</strong> — загрузить файл, скопировать «Direct link».</li>
-          <li>Можно также загрузить файл прямо в форму выше кнопкой «Или загрузить файл» — тогда
-            картинка сохранится в хранилище сайта и ссылка не протухнет.</li>
-        </ul>
+        <div class="grid cols-2" id="accounts-list"></div>
       </div>
-
-      <h2 style="margin-top:36px;">Опубликованные новости</h2>
-      <div class="grid cols-3" id="news-admin-list"></div>
-    </section>
-
-    <section class="section container reveal" id="users-admin-section" data-admin-tab="accounts" style="display:none;">
-      <span class="eyebrow">Модерация</span>
-      <h2>Аккаунты игроков</h2>
-      <p class="tagline">
-        Список тех, кто завёл профиль на сайте (страница «Аккаунт»). Здесь можно выдать статус
-        модератора (доступ в эту панель для добавления игр и расписания), а также забанить или
-        удалить профиль, если он нарушает <a href="register.html#rules" target="_blank" rel="noopener">правила сайта</a>.
-        Бан скрывает профиль и блокирует вход в личный кабинет — сам аккаунт входа (email) при этом
-        не удаляется, это ограничение Firebase Authentication без платного плана.
-      </p>
-      <div id="users-admin-list" class="grid cols-2"></div>
-    </section>
-
+    </div>
+  </div>
   </div>
 </main>
 
-<footer class="footer">
-  <div class="container">
-    <span>© 2026 <span data-role="site-name">Infinity Series Tournaments</span></span>
-    <a data-role="footer-email" href="#"></a>
-    <a class="footer-faceit-btn" href="https://www.faceit.com/ru/organizers/a6bb0df2-dc1e-46ce-8d1d-ac4a4af497b9/INFINITY%20Series%20Tournments" target="_blank" rel="noopener">Faceit турнир</a>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="brand" style="cursor:default;">
+      <img class="brand-mark" src="logo.jpg" alt="MLT Logo">
+      <span class="brand-text" style="font-size:15px;">MLT</span>
+    </div>
+    <nav class="footer-links">
+      <button onclick="window.location.href='/'"><span data-i18n="navHome">Главная</span></button>
+      <button onclick="window.location.href='/matches.html'"><span data-i18n="navMatches">Матчи</span></button>
+      <button onclick="window.location.href='/rankings.html'"><span data-i18n="navRankings">Рейтинги</span></button>
+      <button onclick="window.location.href='/tournaments.html'"><span data-i18n="navTournaments">Турниры</span></button>
+      <button onclick="window.location.href='/news.html'"><span data-i18n="navNews">Новости</span></button>
+      <button onclick="window.location.href='/contacts.html'"><span data-i18n="navContacts">Контакты</span></button>
+    </nav>
+    <div class="footer-social">
+      <a href="#" data-social="telegram" target="_blank" rel="noopener">TG</a>
+      <a href="#" data-social="discord" target="_blank" rel="noopener">DC</a>
+      <a href="#" data-social="youtube" target="_blank" rel="noopener">YT</a>
+      <a href="#" data-social="twitch" target="_blank" rel="noopener">TW</a>
+      <a href="#" data-social="vk" target="_blank" rel="noopener">VK</a>
+    </div>
+    <p data-i18n="footerRights">All rights reserved — MLT</p>
   </div>
 </footer>
 
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-<script defer src="assets/js/firebase-config.js"></script>
-<script defer src="assets/js/main.js"></script>
-<script defer src="assets/js/tournament-shared.js"></script>
-<script defer src="assets/js/admin-auth.js"></script>
-<script defer src="assets/js/admin.js"></script>
+<!-- ============ МОДАЛКА: АВТОРИЗАЦИЯ ============ -->
+<div class="modal-backdrop" id="authModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="authModal" aria-label="Закрыть">×</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-auth-panel="login" data-i18n="authTabLogin">Вход</button>
+      <button class="auth-tab" data-auth-panel="register" data-i18n="authTabRegister">Регистрация</button>
+    </div>
+    <div class="auth-panel active" id="loginPanel">
+      <form id="loginForm" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label data-i18n="labelEmail">Email</label><input type="email" id="loginEmail" required></div>
+        <div class="field"><label data-i18n="labelPassword">Пароль</label><input type="password" id="loginPassword" required></div>
+        <button class="btn primary" type="submit" data-i18n="btnLogin">Войти</button>
+        <p class="form-note" id="authLoginMsg"></p>
+      </form>
+    </div>
+    <div class="auth-panel" id="registerPanel">
+      <form id="registerForm" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label data-i18n="labelEmail">Email</label><input type="email" id="regEmail" required></div>
+        <div class="field"><label data-i18n="labelPassword">Пароль</label><input type="password" id="regPassword" required></div>
+        <div class="field"><label data-i18n="labelNickname">Никнейм</label><input type="text" id="regNickname" placeholder="Оставьте пустым для автогенерации" data-i18n-placeholder="placeholderNicknameAuto"></div>
+        <div id="regCaptcha" class="captcha-box"></div>
+        <button class="btn primary" type="submit" data-i18n="btnCreateAccount">Создать аккаунт</button>
+        <p class="form-note" id="authRegisterMsg"></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ АДМИН-МОДАЛКИ: ДОБАВЛЕНИЕ КОМАНДЫ/ИГРОКА/МАТЧА/ТУРНИРА/НОВОСТИ ============ -->
+<div class="modal-backdrop" id="adminTeamModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="adminTeamModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:18px;" id="atModalTitle">Добавить команду</h2>
+    <form id="adminTeamForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label>Название команды</label><input type="text" id="atName" placeholder="Введите название" required></div>
+      <div class="field"><label>Логотип (необязательно, при редактировании — оставьте пустым, чтобы не менять)</label><input type="file" id="atLogo" accept="image/*"></div>
+      <button class="btn primary" type="submit" id="atSubmitBtn">Добавить</button>
+      <p class="form-note" id="atNote"></p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="adminPlayerModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="adminPlayerModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:18px;" id="apModalTitle">Добавить игрока</h2>
+    <form id="adminPlayerForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label>Ник игрока</label><input type="text" id="apNick" placeholder="Ник" required></div>
+      <div class="field"><label>Команда</label><select id="apTeam" required></select></div>
+      <div class="field"><label>Любимое оружие (необязательно)</label><input type="text" id="apWeapon" placeholder="напр. AK-47"></div>
+      <button class="btn primary" type="submit" id="apSubmitBtn">Добавить</button>
+      <p class="form-note" id="apNote"></p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="adminMatchModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="adminMatchModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:18px;" id="amModalTitle">Создать матч</h2>
+    <form id="adminMatchForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label>Команда A</label><select id="amTeamA" required></select></div>
+      <div class="field"><label>Команда B</label><select id="amTeamB" required></select></div>
+      <div class="field"><label>Турнир (необязательно)</label><select id="amTournament"><option value="">— без турнира —</option></select></div>
+      <div class="field"><label>Формат</label>
+        <select id="amFormat">
+          <option value="BO1">BO1</option>
+          <option value="BO3" selected>BO3</option>
+          <option value="BO5">BO5</option>
+        </select>
+      </div>
+      <div class="field"><label>Дата и время начала</label><input type="datetime-local" id="amWhen" required></div>
+      <button class="btn primary" type="submit" id="amSubmitBtn">Создать</button>
+      <p class="form-note" id="amNote"></p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="adminTournamentModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="adminTournamentModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:18px;" id="attModalTitle">Создать турнир</h2>
+    <form id="adminTournamentForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label>Название турнира</label><input type="text" id="attName" placeholder="Введите название" required></div>
+      <div class="field"><label>Период</label><input type="text" id="attPeriod" placeholder="напр. 14 июл — 9 авг"></div>
+      <div class="field"><label>Призовой фонд</label><input type="text" id="attPrize" placeholder="напр. $5,000"></div>
+      <div class="field"><label>Баннер турнира (картинка, необязательно)</label><input type="file" id="attBanner" accept="image/*"></div>
+      <div class="field"><label>Тип сетки</label>
+        <select id="attBracketType">
+          <option value="single">Обычная (Single Elimination)</option>
+          <option value="bo1">BO1 (Best of 1)</option>
+          <option value="bo3">BO3 (Best of 3)</option>
+          <option value="bo5">BO5 (Best of 5)</option>
+          <option value="swiss">Швейцарская система</option>
+          <option value="league">Лиговая таблица</option>
+        </select>
+      </div>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-dim);">
+        <input type="checkbox" id="attPinned" style="width:auto;"> Закрепить баннер (отображается блеклым фоном на карточках и в профиле)
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-dim);">
+        <input type="checkbox" id="attRegOpen" style="width:auto;"> Открыта регистрация команд
+      </label>
+      <button class="btn primary" type="submit" id="attSubmitBtn">Создать</button>
+      <p class="form-note" id="attNote"></p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="adminNewsModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="adminNewsModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:18px;" id="anModalTitle">Опубликовать новость</h2>
+    <form id="adminNewsForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label>Заголовок</label><input type="text" id="anTitle" placeholder="Заголовок новости" required></div>
+      <div class="field"><label>Тег</label>
+        <select id="anTag">
+          <option>Итоги</option><option>Состав</option><option>Турнир</option><option>Награды</option><option>Новость</option>
+        </select>
+      </div>
+      <div class="field"><label>Краткое описание</label><textarea id="anExcerpt" rows="2" placeholder="Краткое описание"></textarea></div>
+      <div class="field"><label>Полный текст (необязательно)</label><textarea id="anBody" rows="4" placeholder="Полный текст"></textarea></div>
+      <div class="field"><label>Фото новости (картинка, необязательно)</label><input type="file" id="anImage" accept="image/*"></div>
+      <button class="btn primary" type="submit" id="anSubmitBtn">Опубликовать</button>
+      <p class="form-note" id="anNote"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ============ АДМИН-МОДАЛКА: ВНЕСЕНИЕ РЕЗУЛЬТАТА МАТЧА ============ -->
+<div class="modal-backdrop" id="adminResultModal">
+  <div class="modal xwide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="adminResultModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:6px;" id="arTitle">Внесение результата</h2>
+    <p class="form-note" style="margin-bottom:14px;">Заполните карты и, по желанию, статистику игроков на каждой карте (можно оставить строку игрока пустой, если он не играл).</p>
+    <div id="arMapsList" style="display:flex; flex-direction:column; gap:18px;"></div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button type="button" class="btn ghost sm" id="arAddMap">+ Добавить карту</button>
+      <button type="button" class="btn ghost sm" id="arRemoveMap">– Убрать последнюю карту</button>
+    </div>
+    <button class="btn primary" type="button" id="arSubmit" style="margin-top:18px;">Сохранить результат</button>
+    <p class="form-note" id="arNote"></p>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ============ -->
+<div class="modal-backdrop" id="profileModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="profileModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:18px;" data-i18n="profileTitle">Профиль</h2>
+    <form id="profileNicknameForm" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="field"><label data-i18n="labelNickname">Никнейм</label><input type="text" id="pmNickname" required></div>
+      <button class="btn primary" type="submit" data-i18n="btnSaveNickname">Сохранить никнейм</button>
+      <p class="form-note" id="pmNote"></p>
+    </form>
+    <div id="pmTeamBox" style="margin-top:20px;"></div>
+    <div id="pmContactBox" style="margin-top:20px;"></div>
+    <button class="btn danger" id="pmLogout" type="button" style="margin-top:20px; width:100%;" data-i18n="btnLogout">Выйти из аккаунта</button>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: СОЗДАНИЕ КОМАНДЫ ============ -->
+<div class="modal-backdrop" id="createTeamModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="createTeamModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="createTeamTitle">Создать команду</h2>
+    <p class="form-note" id="ctNote" style="margin-bottom:14px;"></p>
+    <form id="createTeamForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label data-i18n="labelTeamName">Название команды</label><input type="text" id="ctName" required></div>
+      <div class="field"><label data-i18n="labelLogoOptional">Логотип (необязательно)</label><input type="file" id="ctLogo" accept="image/*"></div>
+      <div class="field"><label data-i18n="labelMainRoster">Основной состав — 5 игроков</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="ctMain0" placeholder="Ник игрока 1" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain1" placeholder="Ник игрока 2" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain2" placeholder="Ник игрока 3" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain3" placeholder="Ник игрока 4" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain4" placeholder="Ник игрока 5" data-i18n-placeholder="placeholderMainPlayer" required>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="labelReserveRoster">Запасные — до 2 (необязательно)</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="ctReserve0" placeholder="Ник запасного 1" data-i18n-placeholder="placeholderReservePlayer">
+          <input type="text" id="ctReserve1" placeholder="Ник запасного 2" data-i18n-placeholder="placeholderReservePlayer">
+        </div>
+      </div>
+      <button class="btn primary" type="submit" id="ctSubmitBtn" data-i18n="btnCreateTeamSubmit">Создать команду</button>
+      <p class="form-note" id="ctFormNote"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: РЕДАКТИРОВАНИЕ СОСТАВА КОМАНДЫ (владелец) ============ -->
+<div class="modal-backdrop" id="editTeamModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="editTeamModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="editTeamTitle">Редактировать состав</h2>
+    <form id="editTeamForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label data-i18n="labelTeamName">Название команды</label><input type="text" id="etName" required></div>
+      <div class="field"><label data-i18n="labelLogoOptional">Логотип (необязательно)</label><input type="file" id="etLogo" accept="image/*"></div>
+      <div class="field"><label data-i18n="labelMainRoster">Основной состав — 5 игроков</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="etMain0" placeholder="Ник игрока 1" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain1" placeholder="Ник игрока 2" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain2" placeholder="Ник игрока 3" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain3" placeholder="Ник игрока 4" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain4" placeholder="Ник игрока 5" data-i18n-placeholder="placeholderMainPlayer" required>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="labelReserveRoster">Запасные — до 2 (необязательно)</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="etReserve0" placeholder="Ник запасного 1" data-i18n-placeholder="placeholderReservePlayer">
+          <input type="text" id="etReserve1" placeholder="Ник запасного 2" data-i18n-placeholder="placeholderReservePlayer">
+        </div>
+      </div>
+      <button class="btn primary" type="submit" id="etSubmitBtn" data-i18n="btnSaveTeam">Сохранить изменения</button>
+      <p class="form-note" id="etFormNote"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: ЗАЯВКА НА ТУРНИР ============ -->
+<div class="modal-backdrop" id="tournamentRegModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="tournamentRegModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="tournamentRegTitle">Заявка на турнир</h2>
+    <p class="form-note" id="trTournamentName" style="margin-bottom:14px;"></p>
+    <form id="tournamentRegForm" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="field"><label data-i18n="labelContact">Контакт для связи (Telegram, Discord и т.п.)</label><input type="text" id="trContact" required></div>
+      <div id="trCaptcha" class="captcha-box"></div>
+      <button class="btn primary" type="submit" data-i18n="btnSubmitRequest">Подать заявку</button>
+      <p class="form-note" id="trNote"></p>
+    </form>
+  </div>
+</div>
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="config.js"></script>
+<script type="module" src="assets/js/firebase-config.js"></script>
+<script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

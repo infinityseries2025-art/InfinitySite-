@@ -1,0 +1,9 @@
+{
+  "name": "mlt-faceit-sync",
+  "private": true,
+  "type": "module",
+  "description": "Служебный скрипт GitHub Actions: подтягивает Elo/уровень с Faceit Data API v4 и пишет в Firestore. Никогда не запускается в браузере, ключ Faceit хранится только в секретах репозитория.",
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}

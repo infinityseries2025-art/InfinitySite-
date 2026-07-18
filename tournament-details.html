@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Новости — MLT Esports Platform</title>
+<title>Турнир — MLT Esports Platform</title>
 <link rel="icon" type="image/jpeg" href="logo.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -21,8 +21,8 @@
       <a href="/" class="nav-link"><span data-i18n="navHome">Главная</span></a>
       <a href="/matches.html" class="nav-link"><span data-i18n="navMatches">Матчи</span></a>
       <a href="/rankings.html" class="nav-link"><span data-i18n="navRankings">Рейтинги</span></a>
-      <a href="/tournaments.html" class="nav-link"><span data-i18n="navTournaments">Турниры</span></a>
-      <a href="/news.html" class="nav-link active"><span data-i18n="navNews">Новости</span></a>
+      <a href="/tournaments.html" class="nav-link active"><span data-i18n="navTournaments">Турниры</span></a>
+      <a href="/news.html" class="nav-link"><span data-i18n="navNews">Новости</span></a>
       <a href="/contacts.html" class="nav-link"><span data-i18n="navContacts">Контакты</span></a>
     </nav>
     <div class="header-actions">
@@ -43,8 +43,8 @@
       <a href="/" class="mobile-nav-link"><span data-i18n="navHome">Главная</span></a>
       <a href="/matches.html" class="mobile-nav-link"><span data-i18n="navMatches">Матчи</span></a>
       <a href="/rankings.html" class="mobile-nav-link"><span data-i18n="navRankings">Рейтинги</span></a>
-      <a href="/tournaments.html" class="mobile-nav-link"><span data-i18n="navTournaments">Турниры</span></a>
-      <a href="/news.html" class="mobile-nav-link active"><span data-i18n="navNews">Новости</span></a>
+      <a href="/tournaments.html" class="mobile-nav-link active"><span data-i18n="navTournaments">Турниры</span></a>
+      <a href="/news.html" class="mobile-nav-link"><span data-i18n="navNews">Новости</span></a>
       <a href="/contacts.html" class="mobile-nav-link"><span data-i18n="navContacts">Контакты</span></a>
     </nav>
     <div class="mobile-menu-actions">
@@ -59,12 +59,12 @@
 
 <main>
   <div class="page-head">
-    <h1 data-i18n="pageNewsTitle">Новости</h1>
+    <button class="btn ghost sm" onclick="window.location.href='/tournaments.html'" data-i18n="backToTournaments">← Назад к турнирам</button>
+    <h1 id="tournamentDetailsName" data-i18n="tournamentDetailsTitle">Турнир</h1>
   </div>
 
-  <div class="news-filters" id="newsFilters"></div>
-  <div class="news-grid" id="newsGridFull">
-    <div class="empty-state">Загрузка новостей...</div>
+  <div id="tournamentDetails" class="tournament-details">
+    <div class="empty-state" data-i18n="loadingProfile">Загрузка профиля...</div>
   </div>
 </main>
 
@@ -135,65 +135,6 @@
     <div id="pmTeamBox" style="margin-top:20px;"></div>
     <div id="pmContactBox" style="margin-top:20px;"></div>
     <button class="btn danger" id="pmLogout" type="button" style="margin-top:20px; width:100%;" data-i18n="btnLogout">Выйти из аккаунта</button>
-  </div>
-</div>
-
-<!-- ============ МОДАЛКА: СОЗДАНИЕ КОМАНДЫ ============ -->
-<div class="modal-backdrop" id="createTeamModal">
-  <div class="modal wide" onclick="event.stopPropagation()">
-    <button class="modal-close" data-close-modal="createTeamModal" aria-label="Закрыть">×</button>
-    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="createTeamTitle">Создать команду</h2>
-    <p class="form-note" id="ctNote" style="margin-bottom:14px;"></p>
-    <form id="createTeamForm" style="display:flex; flex-direction:column; gap:14px;">
-      <div class="field"><label data-i18n="labelTeamName">Название команды</label><input type="text" id="ctName" required></div>
-      <div class="field"><label data-i18n="labelLogoOptional">Логотип (необязательно)</label><input type="file" id="ctLogo" accept="image/*"></div>
-      <div class="field"><label data-i18n="labelMainRoster">Основной состав — 5 игроков</label>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <input type="text" id="ctMain0" placeholder="Ник игрока 1" data-i18n-placeholder="placeholderMainPlayer" required>
-          <input type="text" id="ctMain1" placeholder="Ник игрока 2" data-i18n-placeholder="placeholderMainPlayer" required>
-          <input type="text" id="ctMain2" placeholder="Ник игрока 3" data-i18n-placeholder="placeholderMainPlayer" required>
-          <input type="text" id="ctMain3" placeholder="Ник игрока 4" data-i18n-placeholder="placeholderMainPlayer" required>
-          <input type="text" id="ctMain4" placeholder="Ник игрока 5" data-i18n-placeholder="placeholderMainPlayer" required>
-        </div>
-      </div>
-      <div class="field"><label data-i18n="labelReserveRoster">Запасные — до 2 (необязательно)</label>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <input type="text" id="ctReserve0" placeholder="Ник запасного 1" data-i18n-placeholder="placeholderReservePlayer">
-          <input type="text" id="ctReserve1" placeholder="Ник запасного 2" data-i18n-placeholder="placeholderReservePlayer">
-        </div>
-      </div>
-      <button class="btn primary" type="submit" id="ctSubmitBtn" data-i18n="btnCreateTeamSubmit">Создать команду</button>
-      <p class="form-note" id="ctFormNote"></p>
-    </form>
-  </div>
-</div>
-
-<!-- ============ МОДАЛКА: РЕДАКТИРОВАНИЕ СОСТАВА КОМАНДЫ (владелец) ============ -->
-<div class="modal-backdrop" id="editTeamModal">
-  <div class="modal wide" onclick="event.stopPropagation()">
-    <button class="modal-close" data-close-modal="editTeamModal" aria-label="Закрыть">×</button>
-    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="editTeamTitle">Редактировать состав</h2>
-    <form id="editTeamForm" style="display:flex; flex-direction:column; gap:14px;">
-      <div class="field"><label data-i18n="labelTeamName">Название команды</label><input type="text" id="etName" required></div>
-      <div class="field"><label data-i18n="labelLogoOptional">Логотип (необязательно)</label><input type="file" id="etLogo" accept="image/*"></div>
-      <div class="field"><label data-i18n="labelMainRoster">Основной состав — 5 игроков</label>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <input type="text" id="etMain0" placeholder="Ник игрока 1" data-i18n-placeholder="placeholderMainPlayer" required>
-          <input type="text" id="etMain1" placeholder="Ник игрока 2" data-i18n-placeholder="placeholderMainPlayer" required>
-          <input type="text" id="etMain2" placeholder="Ник игрока 3" data-i18n-placeholder="placeholderMainPlayer" required>
-          <input type="text" id="etMain3" placeholder="Ник игрока 4" data-i18n-placeholder="placeholderMainPlayer" required>
-          <input type="text" id="etMain4" placeholder="Ник игрока 5" data-i18n-placeholder="placeholderMainPlayer" required>
-        </div>
-      </div>
-      <div class="field"><label data-i18n="labelReserveRoster">Запасные — до 2 (необязательно)</label>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <input type="text" id="etReserve0" placeholder="Ник запасного 1" data-i18n-placeholder="placeholderReservePlayer">
-          <input type="text" id="etReserve1" placeholder="Ник запасного 2" data-i18n-placeholder="placeholderReservePlayer">
-        </div>
-      </div>
-      <button class="btn primary" type="submit" id="etSubmitBtn" data-i18n="btnSaveTeam">Сохранить изменения</button>
-      <p class="form-note" id="etFormNote"></p>
-    </form>
   </div>
 </div>
 

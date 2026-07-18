@@ -1,0 +1,14 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/node_modules/**",
+      "deploy/**",
+      "index-old.html",
+      "mlt-site.html",
+      "site.zip"
+    ]
+  }
+}

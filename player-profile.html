@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MLT — Esports Platform</title>
+<title>Профиль игрока — MLT Esports Platform</title>
 <link rel="icon" type="image/jpeg" href="logo.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
       <span class="brand-text">MLT<small>ESPORTS PLATFORM</small></span>
     </button>
     <nav class="main-nav">
-      <a href="/" class="nav-link active"><span data-i18n="navHome">Главная</span></a>
+      <a href="/" class="nav-link"><span data-i18n="navHome">Главная</span></a>
       <a href="/matches.html" class="nav-link"><span data-i18n="navMatches">Матчи</span></a>
       <a href="/rankings.html" class="nav-link"><span data-i18n="navRankings">Рейтинги</span></a>
       <a href="/tournaments.html" class="nav-link"><span data-i18n="navTournaments">Турниры</span></a>
@@ -26,7 +26,7 @@
       <a href="/contacts.html" class="nav-link"><span data-i18n="navContacts">Контакты</span></a>
     </nav>
     <div class="header-actions">
-      <button class="btn ghost sm" id="langToggle" title="Switch language / Сменить язык">EN</button>
+      <button class="btn ghost sm" id="langToggle">EN</button>
       <button class="icon-btn" id="adminPanelBtn" title="Админ-панель" data-i18n-title="adminPanelTitle" onclick="window.location.href='/admin.html'" style="display:none;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v6c0 5 4 8.5 9 9 5-.5 9-4 9-9V7l-9-5Z" stroke="currentColor" stroke-width="1.5"/></svg>
       </button>
@@ -40,7 +40,7 @@
   </div>
   <div class="mobile-menu" id="mobileMenu">
     <nav class="mobile-nav">
-      <a href="/" class="mobile-nav-link active"><span data-i18n="navHome">Главная</span></a>
+      <a href="/" class="mobile-nav-link"><span data-i18n="navHome">Главная</span></a>
       <a href="/matches.html" class="mobile-nav-link"><span data-i18n="navMatches">Матчи</span></a>
       <a href="/rankings.html" class="mobile-nav-link"><span data-i18n="navRankings">Рейтинги</span></a>
       <a href="/tournaments.html" class="mobile-nav-link"><span data-i18n="navTournaments">Турниры</span></a>
@@ -58,52 +58,14 @@
 </header>
 
 <main>
-  <section class="hero">
-    <div class="hero-grid">
-      <div class="hero-copy">
-        <span class="eyebrow" data-i18n="heroEyebrow">MLT · ESPORTS LEAGUE</span>
-        <h1><span data-i18n="heroTitleLine1">Турниры, статистика</span><br><span data-i18n="heroTitleLine2">и матчи</span></h1>
-        <p class="tagline" data-i18n="heroTagline">в одном месте</p>
-        <p data-i18n="heroDesc">Платформа лиги MLT: расписание матчей, автоматическая статистика игроков и команд, турнирные сетки и рейтинги. Всё обновляется само — админ вносит только результат.</p>
-        <div class="hero-actions">
-          <button class="btn primary" onclick="window.location.href='/matches.html'" data-i18n="heroBtnMatches">Смотреть матчи</button>
-          <button class="btn ghost" onclick="window.location.href='/matches.html'" data-i18n="heroBtnNext">Ближайший матч</button>
-        </div>
-      </div>
-      <aside class="hero-side">
-        <div class="eyebrow" data-i18n="sidePriority">Топ матчи дня</div>
-        <div class="top-matches" id="homeTopMatches">
-          <div class="empty-state" data-i18n="loadingMatches">Загрузка матчей...</div>
-        </div>
-      </aside>
-    </div>
-  </section>
+  <div class="page-head">
+    <button class="btn ghost sm" onclick="window.location.href='/rankings.html'" data-i18n="backToRankings">← Назад к рейтингам</button>
+    <h1 id="playerName" data-i18n="playerProfileTitle">Профиль игрока</h1>
+  </div>
 
-  <section class="section">
-    <div class="section-head">
-      <div>
-        <span class="eyebrow" data-i18n="eyebrowUpcoming">Ближайшие матчи</span>
-        <h2 data-i18n="titleMatches">Матчи</h2>
-      </div>
-      <button class="link-more" onclick="window.location.href='/matches.html'" data-i18n="linkMoreMatches">Все матчи →</button>
-    </div>
-    <div class="match-grid" id="homeMatchGrid">
-      <div class="empty-state" data-i18n="loadingMatches">Загрузка матчей...</div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section-head">
-      <div>
-        <span class="eyebrow" data-i18n="eyebrowMedia">Медиа</span>
-        <h2 data-i18n="titleNews">Последние новости</h2>
-      </div>
-      <button class="link-more" onclick="window.location.href='/news.html'" data-i18n="linkMoreNews">Все новости →</button>
-    </div>
-    <div class="news-grid" id="homeNewsGrid">
-      <div class="empty-state" data-i18n="loadingNews">Загрузка новостей...</div>
-    </div>
-  </section>
+  <div id="playerProfile" class="player-profile">
+    <div class="empty-state" data-i18n="loadingProfile">Загрузка профиля...</div>
+  </div>
 </main>
 
 <footer class="site-footer">
@@ -121,44 +83,15 @@
       <button onclick="window.location.href='/contacts.html'"><span data-i18n="navContacts">Контакты</span></button>
     </nav>
     <div class="footer-social">
-      <a href="#" data-social="telegram" target="_blank" rel="noopener" title="Telegram">TG</a>
-      <a href="#" data-social="discord" target="_blank" rel="noopener" title="Discord">DC</a>
-      <a href="#" data-social="youtube" target="_blank" rel="noopener" title="YouTube">YT</a>
-      <a href="#" data-social="twitch" target="_blank" rel="noopener" title="Twitch">TW</a>
-      <a href="#" data-social="vk" target="_blank" rel="noopener" title="VK">VK</a>
+      <a href="#" data-social="telegram" target="_blank" rel="noopener">TG</a>
+      <a href="#" data-social="discord" target="_blank" rel="noopener">DC</a>
+      <a href="#" data-social="youtube" target="_blank" rel="noopener">YT</a>
+      <a href="#" data-social="twitch" target="_blank" rel="noopener">TW</a>
+      <a href="#" data-social="vk" target="_blank" rel="noopener">VK</a>
     </div>
     <p data-i18n="footerRights">All rights reserved — MLT</p>
   </div>
 </footer>
-
-<!-- ============ МОДАЛКА: АВТОРИЗАЦИЯ ============ -->
-<div class="modal-backdrop" id="authModal">
-  <div class="modal" onclick="event.stopPropagation()">
-    <button class="modal-close" data-close-modal="authModal" aria-label="Закрыть">×</button>
-    <div class="auth-tabs">
-      <button class="auth-tab active" data-auth-panel="login" data-i18n="authTabLogin">Вход</button>
-      <button class="auth-tab" data-auth-panel="register" data-i18n="authTabRegister">Регистрация</button>
-    </div>
-    <div class="auth-panel active" id="loginPanel">
-      <form id="loginForm" style="display:flex; flex-direction:column; gap:12px;">
-        <div class="field"><label data-i18n="labelEmail">Email</label><input type="email" id="loginEmail" required></div>
-        <div class="field"><label data-i18n="labelPassword">Пароль</label><input type="password" id="loginPassword" required></div>
-        <button class="btn primary" type="submit" data-i18n="btnLogin">Войти</button>
-        <p class="form-note" id="authLoginMsg"></p>
-      </form>
-    </div>
-    <div class="auth-panel" id="registerPanel">
-      <form id="registerForm" style="display:flex; flex-direction:column; gap:12px;">
-        <div class="field"><label data-i18n="labelEmail">Email</label><input type="email" id="regEmail" required></div>
-        <div class="field"><label data-i18n="labelPassword">Пароль</label><input type="password" id="regPassword" required></div>
-        <div class="field"><label data-i18n="labelNickname">Никнейм</label><input type="text" id="regNickname" placeholder="Оставьте пустым для автогенерации" data-i18n-placeholder="placeholderNicknameAuto"></div>
-        <div id="regCaptcha" class="captcha-box"></div>
-        <button class="btn primary" type="submit" data-i18n="btnCreateAccount">Создать аккаунт</button>
-        <p class="form-note" id="authRegisterMsg"></p>
-      </form>
-    </div>
-  </div>
-</div>
 
 <!-- ============ МОДАЛКА: ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ============ -->
 <div class="modal-backdrop" id="profileModal">
