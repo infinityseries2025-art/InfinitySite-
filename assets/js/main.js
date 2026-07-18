@@ -3329,10 +3329,29 @@ document.addEventListener("DOMContentLoaded", () => {
   // Mobile menu toggle
   const mobileMenuBtn = document.getElementById("mobileMenuBtn");
   const mobileMenu = document.getElementById("mobileMenu");
+  const closeMobileMenu = () => {
+    mobileMenuBtn?.classList.remove("active");
+    mobileMenu?.classList.remove("open");
+  };
   if (mobileMenuBtn && mobileMenu) {
-    mobileMenuBtn.addEventListener("click", () => {
+    mobileMenuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
       mobileMenuBtn.classList.toggle("active");
       mobileMenu.classList.toggle("open");
+    });
+    // Закрыть меню при клике на пункт навигации
+    mobileMenu.querySelectorAll(".mobile-nav-link").forEach(link => {
+      link.addEventListener("click", closeMobileMenu);
+    });
+    // Закрыть меню при клике вне его
+    document.addEventListener("click", (e) => {
+      if (mobileMenu.classList.contains("open") && !mobileMenu.contains(e.target) && e.target !== mobileMenuBtn && !mobileMenuBtn.contains(e.target)) {
+        closeMobileMenu();
+      }
+    });
+    // Закрыть меню по Escape
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMobileMenu();
     });
   }
 
@@ -3344,8 +3363,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "/account.html";
       } else {
         document.getElementById("authModal").classList.add("open");
-        mobileMenuBtn.classList.remove("active");
-        mobileMenu.classList.remove("open");
+        closeMobileMenu();
       }
     });
   }
