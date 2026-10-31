@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Рейтинги — MLT Esports Platform</title>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <button class="brand" onclick="window.location.href='/'">
+      <img class="brand-mark" src="logo.jpg" alt="MLT Logo">
+      <span class="brand-text">MLT<small>ESPORTS PLATFORM</small></span>
+    </button>
+    <nav class="main-nav">
+      <a href="/" class="nav-link"><span data-i18n="navHome">Главная</span></a>
+      <a href="/matches.html" class="nav-link"><span data-i18n="navMatches">Матчи</span></a>
+      <a href="/rankings.html" class="nav-link active"><span data-i18n="navRankings">Рейтинги</span></a>
+      <a href="/tournaments.html" class="nav-link"><span data-i18n="navTournaments">Турниры</span></a>
+      <a href="/news.html" class="nav-link"><span data-i18n="navNews">Новости</span></a>
+      <a href="/contacts.html" class="nav-link"><span data-i18n="navContacts">Контакты</span></a>
+    </nav>
+    <div class="header-actions">
+      <button class="btn ghost sm" id="langToggle">EN</button>
+      <button class="icon-btn" id="adminPanelBtn" title="Админ-панель" data-i18n-title="adminPanelTitle" onclick="window.location.href='/admin.html'" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v6c0 5 4 8.5 9 9 5-.5 9-4 9-9V7l-9-5Z" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+      <button class="btn ghost" id="openAuth">Войти</button>
+      <button class="hamburger-btn" id="mobileMenuBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <nav class="mobile-nav">
+      <a href="/" class="mobile-nav-link"><span data-i18n="navHome">Главная</span></a>
+      <a href="/matches.html" class="mobile-nav-link"><span data-i18n="navMatches">Матчи</span></a>
+      <a href="/rankings.html" class="mobile-nav-link active"><span data-i18n="navRankings">Рейтинги</span></a>
+      <a href="/tournaments.html" class="mobile-nav-link"><span data-i18n="navTournaments">Турниры</span></a>
+      <a href="/news.html" class="mobile-nav-link"><span data-i18n="navNews">Новости</span></a>
+      <a href="/contacts.html" class="mobile-nav-link"><span data-i18n="navContacts">Контакты</span></a>
+    </nav>
+    <div class="mobile-menu-actions">
+      <button class="btn ghost sm" id="mobileLangToggle">EN</button>
+      <button class="icon-btn" id="mobileAdminPanelBtn" onclick="window.location.href='/admin.html'" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v6c0 5 4 8.5 9 9 5-.5 9-4 9-9V7l-9-5Z" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+      <button class="btn primary" id="mobileOpenAuth">Войти</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1 data-i18n="pageRankingsTitle">Рейтинги</h1>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="rankings" data-value="teams" data-i18n="tabTeams">Команды</button>
+    <button class="tab" data-tab="rankings" data-value="players" data-i18n="tabPlayers">Игроки</button>
+  </div>
+
+  <div id="teamsTable" class="data-table" data-tab-panel="rankings" data-value="teams">
+    <div class="data-row head"><span>#</span><span>Команда</span><span>Винрейт</span><span>Рейтинг</span><span>Трофеи</span></div>
+    <div class="empty-state">Загрузка рейтинга команд...</div>
+  </div>
+
+  <div id="playersTable" class="data-table players" data-tab-panel="rankings" data-value="players" style="display:none;">
+    <div class="data-row head"><span>#</span><span>Игрок</span><span>K/D</span><span>ADR</span><span>KAST</span><span>Рейтинг</span></div>
+    <div class="empty-state">Загрузка рейтинга игроков...</div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="brand" style="cursor:default;">
+      <img class="brand-mark" src="logo.jpg" alt="MLT Logo">
+      <span class="brand-text" style="font-size:15px;">MLT</span>
+    </div>
+    <nav class="footer-links">
+      <button onclick="window.location.href='/'"><span data-i18n="navHome">Главная</span></button>
+      <button onclick="window.location.href='/matches.html'"><span data-i18n="navMatches">Матчи</span></button>
+      <button onclick="window.location.href='/rankings.html'"><span data-i18n="navRankings">Рейтинги</span></button>
+      <button onclick="window.location.href='/tournaments.html'"><span data-i18n="navTournaments">Турниры</span></button>
+      <button onclick="window.location.href='/news.html'"><span data-i18n="navNews">Новости</span></button>
+      <button onclick="window.location.href='/contacts.html'"><span data-i18n="navContacts">Контакты</span></button>
+    </nav>
+    <div class="footer-social">
+      <a href="#" data-social="telegram" target="_blank" rel="noopener">TG</a>
+      <a href="#" data-social="discord" target="_blank" rel="noopener">DC</a>
+      <a href="#" data-social="youtube" target="_blank" rel="noopener">YT</a>
+      <a href="#" data-social="twitch" target="_blank" rel="noopener">TW</a>
+      <a href="#" data-social="vk" target="_blank" rel="noopener">VK</a>
+    </div>
+    <p data-i18n="footerRights">All rights reserved — MLT</p>
+  </div>
+</footer>
+
+<!-- ============ МОДАЛКА: АВТОРИЗАЦИЯ ============ -->
+<div class="modal-backdrop" id="authModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="authModal" aria-label="Закрыть">×</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-auth-panel="login" data-i18n="authTabLogin">Вход</button>
+      <button class="auth-tab" data-auth-panel="register" data-i18n="authTabRegister">Регистрация</button>
+    </div>
+    <div class="auth-panel active" id="loginPanel">
+      <form id="loginForm" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label data-i18n="labelEmail">Email</label><input type="email" id="loginEmail" required></div>
+        <div class="field"><label data-i18n="labelPassword">Пароль</label><input type="password" id="loginPassword" required></div>
+        <button class="btn primary" type="submit" data-i18n="btnLogin">Войти</button>
+        <p class="form-note" id="authLoginMsg"></p>
+      </form>
+    </div>
+    <div class="auth-panel" id="registerPanel">
+      <form id="registerForm" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label data-i18n="labelEmail">Email</label><input type="email" id="regEmail" required></div>
+        <div class="field"><label data-i18n="labelPassword">Пароль</label><input type="password" id="regPassword" required></div>
+        <div class="field"><label data-i18n="labelNickname">Никнейм</label><input type="text" id="regNickname" placeholder="Оставьте пустым для автогенерации" data-i18n-placeholder="placeholderNicknameAuto"></div>
+        <div id="regCaptcha" class="captcha-box"></div>
+        <button class="btn primary" type="submit" data-i18n="btnCreateAccount">Создать аккаунт</button>
+        <p class="form-note" id="authRegisterMsg"></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ============ -->
+<div class="modal-backdrop" id="profileModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="profileModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:18px;" data-i18n="profileTitle">Профиль</h2>
+    <form id="profileNicknameForm" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="field"><label data-i18n="labelNickname">Никнейм</label><input type="text" id="pmNickname" required></div>
+      <button class="btn primary" type="submit" data-i18n="btnSaveNickname">Сохранить никнейм</button>
+      <p class="form-note" id="pmNote"></p>
+    </form>
+    <div id="pmTeamBox" style="margin-top:20px;"></div>
+    <div id="pmContactBox" style="margin-top:20px;"></div>
+    <button class="btn danger" id="pmLogout" type="button" style="margin-top:20px; width:100%;" data-i18n="btnLogout">Выйти из аккаунта</button>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: СОЗДАНИЕ КОМАНДЫ ============ -->
+<div class="modal-backdrop" id="createTeamModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="createTeamModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="createTeamTitle">Создать команду</h2>
+    <p class="form-note" id="ctNote" style="margin-bottom:14px;"></p>
+    <form id="createTeamForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label data-i18n="labelTeamName">Название команды</label><input type="text" id="ctName" required></div>
+      <div class="field"><label data-i18n="labelLogoOptional">Логотип (необязательно)</label><input type="file" id="ctLogo" accept="image/*"></div>
+      <div class="field"><label data-i18n="labelMainRoster">Основной состав — 5 игроков</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="ctMain0" placeholder="Ник игрока 1" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain1" placeholder="Ник игрока 2" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain2" placeholder="Ник игрока 3" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain3" placeholder="Ник игрока 4" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="ctMain4" placeholder="Ник игрока 5" data-i18n-placeholder="placeholderMainPlayer" required>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="labelReserveRoster">Запасные — до 2 (необязательно)</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="ctReserve0" placeholder="Ник запасного 1" data-i18n-placeholder="placeholderReservePlayer">
+          <input type="text" id="ctReserve1" placeholder="Ник запасного 2" data-i18n-placeholder="placeholderReservePlayer">
+        </div>
+      </div>
+      <button class="btn primary" type="submit" id="ctSubmitBtn" data-i18n="btnCreateTeamSubmit">Создать команду</button>
+      <p class="form-note" id="ctFormNote"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: РЕДАКТИРОВАНИЕ СОСТАВА КОМАНДЫ (владелец) ============ -->
+<div class="modal-backdrop" id="editTeamModal">
+  <div class="modal wide" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="editTeamModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="editTeamTitle">Редактировать состав</h2>
+    <form id="editTeamForm" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="field"><label data-i18n="labelTeamName">Название команды</label><input type="text" id="etName" required></div>
+      <div class="field"><label data-i18n="labelLogoOptional">Логотип (необязательно)</label><input type="file" id="etLogo" accept="image/*"></div>
+      <div class="field"><label data-i18n="labelMainRoster">Основной состав — 5 игроков</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="etMain0" placeholder="Ник игрока 1" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain1" placeholder="Ник игрока 2" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain2" placeholder="Ник игрока 3" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain3" placeholder="Ник игрока 4" data-i18n-placeholder="placeholderMainPlayer" required>
+          <input type="text" id="etMain4" placeholder="Ник игрока 5" data-i18n-placeholder="placeholderMainPlayer" required>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="labelReserveRoster">Запасные — до 2 (необязательно)</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="etReserve0" placeholder="Ник запасного 1" data-i18n-placeholder="placeholderReservePlayer">
+          <input type="text" id="etReserve1" placeholder="Ник запасного 2" data-i18n-placeholder="placeholderReservePlayer">
+        </div>
+      </div>
+      <button class="btn primary" type="submit" id="etSubmitBtn" data-i18n="btnSaveTeam">Сохранить изменения</button>
+      <p class="form-note" id="etFormNote"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА: ЗАЯВКА НА ТУРНИР ============ -->
+<div class="modal-backdrop" id="tournamentRegModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" data-close-modal="tournamentRegModal" aria-label="Закрыть">×</button>
+    <h2 style="font-size:19px; margin-bottom:6px;" data-i18n="tournamentRegTitle">Заявка на турнир</h2>
+    <p class="form-note" id="trTournamentName" style="margin-bottom:14px;"></p>
+    <form id="tournamentRegForm" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="field"><label data-i18n="labelContact">Контакт для связи (Telegram, Discord и т.п.)</label><input type="text" id="trContact" required></div>
+      <div id="trCaptcha" class="captcha-box"></div>
+      <button class="btn primary" type="submit" data-i18n="btnSubmitRequest">Подать заявку</button>
+      <p class="form-note" id="trNote"></p>
+    </form>
+  </div>
+</div>
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="config.js"></script>
+<script type="module" src="assets/js/firebase-config.js"></script>
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

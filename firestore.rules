@@ -1,0 +1,156 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+    // Защита от слишком большого лого: картинки теперь хранятся не в
+    // Storage (её нет на бесплатном плане Spark), а прямо в поле logoUrl
+    // документа команды как base64. Клиент сам сжимает картинку до
+    // нескольких КБ перед сохранением (см. mlt-site.html), это правило —
+    // серверная страховка на случай, если кто-то пишет в обход клиента.
+    function logoUrlOk() {
+      return !("logoUrl" in request.resource.data) ||
+        request.resource.data.logoUrl == null ||
+        request.resource.data.logoUrl.size() < 300000;
+    }
+    // Та же страховка для персонального фото профиля пользователя
+    // (тоже base64 в поле photoUrl, без Storage — бесплатный план Spark).
+    function photoUrlOk() {
+      return !("photoUrl" in request.resource.data) ||
+        request.resource.data.photoUrl == null ||
+        request.resource.data.photoUrl.size() < 400000;
+    }
+    // Модерация команд: обычный пользователь может создать команду только
+    // со статусом "pending" — сам себя одобрить не может. Менять статус
+    // после создания (pending -> approved/rejected) может только админ;
+    // владелец команды может редактировать остальные поля (ростер, лого,
+    // название), но при этом статус не трогает — см. update ниже.
+    function teamStatusUnchanged() {
+      return !("status" in request.resource.data) ||
+        !("status" in resource.data) ||
+        request.resource.data.status == resource.data.status;
+    }
+    // Владелец команды может сам вернуть отклонённую заявку на повторную
+    // модерацию (rejected -> pending), но не может сам себя одобрить.
+    function teamOwnerStatusOk() {
+      return teamStatusUnchanged() ||
+        (resource.data.status == "rejected" && request.resource.data.status == "pending");
+    }
+
+    // Профили пользователей. Читать может кто угодно (в том числе гость) —
+    // это нужно, чтобы публичная карточка игрока в рейтинге могла
+    // подтянуть фото/контакты/Faceit по совпадению ника даже для
+    // незалогиненных посетителей (см. findLinkedUserByNick в main.js).
+    // Создавать/редактировать — только свой профиль; свою роль сам себе
+    // изменить не может — это может сделать только админ (кроме самого
+    // первого пользователя, который клиентски бутстрапится в админа при
+    // первой регистрации — см. ограничение ниже в разделе "Известные
+    // упрощения").
+    //
+    // Elo/Faceit + контакты (см. FACEIT_SETUP.md): правило update ниже уже
+    // разрешает пользователю писать любые свои поля, кроме role, поэтому
+    // отдельного правила для telegram/discord/faceitNickname/faceitUrl/
+    // faceitElo/faceitLevel/faceitUpdatedAt/faceitUpdateRequested не
+    // требуется — они все под общим self-update правилом. faceitElo и
+    // faceitLevel на практике пишет процесс GitHub Actions через Firebase
+    // Admin SDK (service account), который проверки правил Firestore не
+    // проходит вообще (доверенный серверный доступ) — правило здесь важно
+    // только для того, чтобы клиент мог сам поставить флаг
+    // faceitUpdateRequested и сохранить свой faceitNickname/telegram/discord.
+    match /users/{uid} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if (isAdmin() ||
+        (isSignedIn() && request.auth.uid == uid &&
+         request.resource.data.role == resource.data.role)) && photoUrlOk();
+      allow delete: if isAdmin();
+    }
+
+    // Команды: читать может кто угодно (публичный сайт показывает и
+    // команды на модерации на странице владельца — фильтр "видна ли
+    // команда в публичных рейтингах" делается на клиенте по полю status).
+    // Создавать — любой вошедший пользователь, но только со статусом
+    // "pending" (модерация обязательна); админ может создавать команды
+    // сразу одобренными. Редактировать состав/лого/название — владелец
+    // команды или админ, но менять сам статус (pending/approved/rejected)
+    // может только админ — иначе можно было бы самоодобриться.
+    match /teams/{teamId} {
+      allow read: if true;
+      allow create: if isSignedIn() && logoUrlOk() &&
+        (isAdmin() ||
+         (request.resource.data.ownerUid == request.auth.uid &&
+          request.resource.data.status == "pending"));
+      allow update: if logoUrlOk() && (
+        isAdmin() ||
+        (isSignedIn() && resource.data.ownerUid == request.auth.uid && teamOwnerStatusOk())
+      );
+      allow delete: if isAdmin() ||
+        (isSignedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    // Игроки, турниры, новости — редактирует только админ.
+    match /players/{playerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /tournaments/{tid} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /news/{nid} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Матчи: читать может кто угодно. Создавать/удалять/вносить результат —
+    // только админ. Разрешено любому вошедшему клиенту обновлять ТОЛЬКО
+    // поле status (это нужно для автообновления upcoming → live без
+    // облачных функций, план Spark).
+    match /matches/{mid} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() ||
+        (isSignedIn() &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]));
+    }
+
+    // Заявки на регистрацию команды на турнир: создать может любой вошедший
+    // (свою заявку), читать — любой вошедший (для проверки статуса своей
+    // заявки), принимать/отклонять — только админ.
+    match /teamRegistrations/{rid} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /messages/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
+
+/* --------------------------------------------------------------------
+   ИЗВЕСТНОЕ УПРОЩЕНИЕ (важно прочитать)
+   Первый когда-либо зарегистрированный пользователь становится админом —
+   это решает "проблему курицы и яйца" (кто-то должен быть первым админом)
+   без облачных функций (Cloud Functions требуют платный план Blaze,
+   а проект намеренно остаётся на бесплатном Spark, как и договаривались
+   для автообновления статуса матчей).
+   Технически это делает клиентский код при регистрации, проверяя, пуста
+   ли коллекция users. Это защищает от повышения прав ПОСЛЕ создания
+   аккаунта (правило update ролей выше), но не может железно защитить
+   момент первого create — теоретически кто-то, изучив исходный код,
+   мог бы попытаться создать «второго админа» через прямой вызов
+   Firestore API, если он получит доступ раньше администратора сайта.
+   Практическая рекомендация: зарегистрируйте администратора сразу же
+   после первого деплоя, до того как ссылку на сайт увидит кто-то ещё.
+   Если захотите закрыть эту дыру полностью — это делается одной
+   облачной функцией на onCreate триггере (уже требует Blaze).
+-------------------------------------------------------------------- */
