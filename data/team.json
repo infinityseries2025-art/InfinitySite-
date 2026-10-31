@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "name": "Exomi",
+    "role": "Организатор турнира",
+    "photo": "",
+    "socials": { 
+      "telegram":"t.me/jelly9design",
+      "faceit": "https://www.faceit.com/ru/players/3XOMIMI"}
+  },
+  {
+    "id": 2,
+    "name": "Hez1",
+    "role": "Тренер",
+    "photo": "",
+    "socials": { "faceit": "https://www.faceit.com/ru/players/Felexxx1715"}
+  },
+  {
+    "id": 3,
+    "name": "dizerix52",
+    "role": "Снайпер команды организаторов",
+    "photo": "",
+    "socials": { "faceit": "https://www.faceit.com/ru/players/dizerix52"}
+  },
+  {
+    "id": 4,
+    "name": "cheliks52",
+    "role": "Рифлер команды организаторов",
+    "photo": "",
+    "socials": { "faceit": "https://www.faceit.com/ru/players/Cheliks52"}
+  },
+
+  {
+    "id": 5,
+    "name": "Se1ng",
+    "role": "Опорник команды организаторов",
+    "photo": "",
+    "socials": { "faceit": "https://www.faceit.com/ru/players/SE1NGG"}
+  },
+  {
+    "id": 6,
+    "name": "Koariy",
+    "role": "Организатор турнира/Стример",
+    "photo": "",
+    "socials": { 
+      "faceit":"https://www.faceit.com/ru/players/v14er",
+      "twitch": "https://twitch.tv/koariy" }
+  },
+  {
+    "id": 7,
+    "name": "KniNee",
+    "role": "Менеджер",
+    "photo": "",
+    "socials": { "faceit": "https://www.faceit.com/ru/players/k9"}
+  },
+  {
+  "id": 8,
+  "name": "WeatheRR",
+  "role": "Менеджер",
+  "photo": "",
+  "socials": {
+    "faceit": "https://www.faceit.com/ru/players/-weatheRR"
+  }
+},
+{
+  "id": 9,
+  "name": "So1okay",
+  "role": "Менеджер",
+  "photo": "",
+  "socials": {
+    "faceit": "https://www.faceit.com/ru/players/Vitralya"
+  }
+},
+{
+  "id": 10,
+  "name": "Scythvyyyse",
+  "role": "Менеджер",
+  "photo": "",
+  "socials": {}
+},
+  {
+  "id": 10,
+  "name": "Anrill",
+  "role": "Менеджер",
+  "photo": "",
+  "socials": {
+     "telegram": "https://t.me/history_neww"
+  }
+}
+  
+  
+]

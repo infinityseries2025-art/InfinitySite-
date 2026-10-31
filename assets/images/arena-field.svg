@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100" fill="none">
+  <defs>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" stroke="#b8b4c2" stroke-opacity=".07"/></pattern>
+    <pattern id="ticks" width="320" height="320" patternUnits="userSpaceOnUse"><path d="M155 160H165M160 155V165" stroke="#ffacbc" stroke-opacity=".3"/></pattern>
+    <linearGradient id="lane" x1="1400" y1="0" x2="400" y2="1100" gradientUnits="userSpaceOnUse"><stop stop-color="#ffacbc" stop-opacity=".13"/><stop offset=".6" stop-color="#ffacbc" stop-opacity=".025"/><stop offset="1" stop-color="#ffacbc" stop-opacity="0"/></linearGradient>
+    <radialGradient id="fade"><stop stop-color="white"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient>
+    <mask id="field-mask"><ellipse cx="1050" cy="300" rx="1100" ry="950" fill="url(#fade)"/></mask>
+  </defs>
+  <g mask="url(#field-mask)"><path fill="url(#grid)" d="M0 0H1600V1100H0z"/><path fill="url(#ticks)" d="M0 0H1600V1100H0z"/></g>
+  <path d="M1370-100H1670L650 1100H350Z" fill="url(#lane)"/>
+  <g stroke="#ffacbc" stroke-opacity=".11"><path d="M1370-100L350 1100M1384-100L364 1100M1670-100L650 1100"/><circle cx="1370" cy="300" r="430"/><circle cx="1370" cy="300" r="446" stroke-opacity=".05"/><circle cx="1370" cy="300" r="620" stroke-dasharray="3 13"/></g>
+  <path d="M1270 20H1470M1370-80V120" stroke="#ffacbc" stroke-opacity=".13"/>
+</svg>

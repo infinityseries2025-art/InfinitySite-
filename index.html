@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Главная</title>
+<link rel="icon" href="assets/images/favicon.png">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/editorial.css">
+<meta name="description" content="Infinity Series — турниры по CS2, Dota 2 и PUBG. Расписание матчей, участники, турнирные сетки и новости сообщества.">
+</head>
+<body data-page="home">
+
+<header class="navbar">
+  <div class="container">
+    <a href="/" class="brand">
+      <span class="brand-mark" data-role="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h12v3.5c0 3.5-2.5 6-6 6s-6-2.5-6-6V3Z" stroke="currentColor" stroke-width="1.6"/><path d="M9 15.5h6v3H9v-3Z" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 6.5H4a1 1 0 0 0-1 1v.5c0 2 1.6 3.6 3.6 3.6" stroke="currentColor" stroke-width="1.6"/><path d="M16.5 6.5H20a1 1 0 0 1 1 1v.5c0 2-1.6 3.6-3.6 3.6" stroke="currentColor" stroke-width="1.6"/></svg>
+      </span>
+      <span data-role="site-name">Infinity Series Tournaments</span>
+    </a>
+    <button class="nav-toggle" aria-label="Меню"><span></span><span></span><span></span></button>
+    <nav class="nav-links">
+      <a href="/" data-page="home">Главная</a>
+      <a href="/news" data-page="news">Новости</a>
+      <a href="/participants" data-page="participants">Участники</a>
+      <a href="/schedule" data-page="schedule">Расписание</a>
+      <a href="/tournaments" data-page="tournaments">Турниры</a>
+      <a href="/register" data-page="register" class="nav-cta">Регистрация</a>
+      <a href="/team" data-page="team">Организация</a>
+      <a href="/account" data-page="account">Аккаунт</a>
+      <a href="/contacts" data-page="contacts">Контакты</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-surface" id="main-content">
+
+  <div class="edition-bar container"><span>Независимая турнирная организация</span><span>CS2 <i>/</i> Dota 2 <i>/</i> PUBG</span></div>
+
+  <section class="arena container" aria-labelledby="arena-title">
+    <div class="arena-copy">
+      <span class="eyebrow arena-kicker"><span class="signal-dot" aria-hidden="true"></span>Infinity Series / Играй своей командой</span>
+      <h1 id="arena-title">Игра решает.<br><em>Команда — всё.</em></h1>
+      <p>Собери состав. Выходи на сервер. Оставь своё имя в истории Infinity Series.</p>
+      <div class="arena-actions">
+        <a href="/register" class="btn">Заявить команду <span aria-hidden="true">↗</span></a>
+        <a href="/tournaments" class="arena-link">Турниры и сетки <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="arena-caption"><span class="arena-caption-line"></span>CS2, Dota 2 и PUBG. Одна площадка для соревнования.</div>
+      <a class="scroll-cue" href="#match-center"><span aria-hidden="true">↓</span> К событиям серии</a>
+    </div>
+    <aside class="arena-board" aria-labelledby="board-title">
+      <div class="board-top"><span><i class="signal-dot" aria-hidden="true"></i> INFINITY / SERIES</span><span class="board-index">EST. 2025</span></div>
+      <div class="board-art" aria-hidden="true">
+        <svg class="arena-orbits" viewBox="0 0 480 300" fill="none">
+          <defs><linearGradient id="orbit-ink"><stop stop-color="#ffacbc" stop-opacity=".05"/><stop offset=".5" stop-color="#ffacbc" stop-opacity=".7"/><stop offset="1" stop-color="#ffacbc" stop-opacity=".05"/></linearGradient></defs>
+          <g class="orbit-plane"><ellipse cx="240" cy="150" rx="208" ry="94" stroke="url(#orbit-ink)"/><ellipse cx="240" cy="150" rx="178" ry="72" stroke="#ffacbc" stroke-opacity=".17" stroke-dasharray="3 9"/></g>
+          <g class="orbit-tracer"><ellipse cx="240" cy="150" rx="208" ry="94" stroke="#ffacbc" stroke-width="2" stroke-dasharray="45 950"/></g>
+          <path d="M16 150H95M385 150H464M240 16V48M240 252V284" stroke="#ffacbc" stroke-opacity=".25"/>
+          <path d="M24 32V20H36M444 20H456V32M456 268V280H444M36 280H24V268" stroke="#ffacbc" stroke-opacity=".5"/>
+          <circle cx="57" cy="150" r="3" fill="#ffacbc"/><circle cx="423" cy="150" r="3" fill="#ffacbc"/>
+        </svg>
+        <div class="board-emblem"><img src="assets/images/logo.png" alt="" width="200" height="200"></div>
+        <span class="board-art-label">COMPETE / CONNECT / REPEAT</span>
+      </div>
+      <h2 id="board-title">Место встречи<br>сильных составов.</h2>
+      <div class="board-bottom"><span class="board-disciplines"><b>CS2</b><b>DOTA 2</b><b>PUBG</b></span><a href="/participants" aria-label="Посмотреть команды-участники">↗</a></div>
+    </aside>
+  </section>
+
+  <section class="league-strip container" aria-label="Infinity Series в цифрах">
+    <div><strong data-role="stat-tournaments">—</strong><span>турниров проведено</span></div>
+    <div><strong data-role="stat-teams">—</strong><span>команд-участников</span></div>
+    <div><strong data-role="stat-upcoming">—</strong><span>матчей впереди</span></div>
+    <a href="/schedule">Следи за игрой <span aria-hidden="true">↗</span></a>
+  </section>
+
+  <section class="section container reveal" id="match-center">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">01 / Матч-центр</span>
+        <h2 id="home-matches-title">Следующие на сервере</h2>
+      </div>
+      <a class="more" href="/schedule">Всё расписание →</a>
+    </div>
+    <div class="grid cols-3" data-role="home-upcoming"></div>
+  </section>
+
+  <section class="section container reveal">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">02 / Вне сервера</span>
+        <h2>События серии</h2>
+      </div>
+      <a class="more" href="/news">Все новости →</a>
+    </div>
+    <div class="grid cols-3" data-role="home-news"></div>
+  </section>
+
+  <section class="community-band container" aria-labelledby="community-title">
+    <div><span class="eyebrow">Не пропускай главное</span><h2 id="community-title">Игра продолжается<br>за пределами сервера.</h2><p>Анонсы турниров и новости сообщества — в наших каналах.</p></div>
+    <div class="community-actions"><a class="btn" data-community="telegram" href="https://t.me/energycupc" target="_blank" rel="noopener">Telegram ↗</a><a class="btn ghost" data-community="discord" href="https://discord.gg/GDD9k3C8Sm" target="_blank" rel="noopener">Discord ↗</a></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <span>© 2026 <span data-role="site-name">Infinity Series Tournaments</span></span>
+    <a data-role="footer-email" href="#"></a>
+    <a class="footer-faceit-btn" href="https://www.faceit.com/ru/organizers/a6bb0df2-dc1e-46ce-8d1d-ac4a4af497b9/INFINITY%20Series%20Tournments" target="_blank" rel="noopener">Faceit турнир</a>
+  </div>
+</footer>
+
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="assets/js/firebase-config.js"></script>
+<script defer src="assets/js/main.js"></script>
+<script defer src="assets/js/faceit-stats.js"></script>
+<script defer src="assets/js/faceit-live.js"></script>
+</body>
+</html>

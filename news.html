@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Новости</title>
+<link rel="icon" href="assets/images/favicon.png">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/editorial.css">
+</head>
+<body data-page="news">
+
+<header class="navbar">
+  <div class="container">
+    <a href="/" class="brand">
+      <span class="brand-mark" data-role="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h12v3.5c0 3.5-2.5 6-6 6s-6-2.5-6-6V3Z" stroke="currentColor" stroke-width="1.6"/><path d="M9 15.5h6v3H9v-3Z" stroke="currentColor" stroke-width="1.6"/></svg>
+      </span>
+      <span data-role="site-name">Infinity Series Tournaments</span>
+    </a>
+    <button class="nav-toggle" aria-label="Меню"><span></span><span></span><span></span></button>
+    <nav class="nav-links">
+      <a href="/" data-page="home">Главная</a>
+      <a href="/news" data-page="news">Новости</a>
+      <a href="/participants" data-page="participants">Участники</a>
+      <a href="/schedule" data-page="schedule">Расписание</a>
+      <a href="/tournaments" data-page="tournaments">Турниры</a>
+      <a href="/register" data-page="register" class="nav-cta">Регистрация</a>
+      <a href="/team" data-page="team">Организация</a>
+      <a href="/account" data-page="account">Аккаунт</a>
+      <a href="/contacts" data-page="contacts">Контакты</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-surface">
+  <section class="section container reveal">
+    <span class="eyebrow">Медиа</span>
+    <h1>Новости турнира</h1>
+    <p class="tagline">Анонсы, результаты и всё, что происходит вокруг Infinity Series Tournaments.</p>
+    <div class="grid cols-3" data-role="news-list" style="margin-top:28px;"></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <span>© 2026 <span data-role="site-name">Infinity Series Tournaments</span></span>
+    <a data-role="footer-email" href="#"></a>
+    <a class="footer-faceit-btn" href="https://www.faceit.com/ru/organizers/a6bb0df2-dc1e-46ce-8d1d-ac4a4af497b9/INFINITY%20Series%20Tournments" target="_blank" rel="noopener">Faceit турнир</a>
+  </div>
+</footer>
+
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="assets/js/firebase-config.js"></script>
+<script defer src="assets/js/main.js"></script>
+</body>
+</html>

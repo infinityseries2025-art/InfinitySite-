@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Регистрация команды</title>
+<link rel="icon" href="assets/images/favicon.png">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/editorial.css">
+</head>
+<body data-page="register">
+
+<header class="navbar">
+  <div class="container">
+    <a href="/" class="brand">
+      <span class="brand-mark" data-role="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h12v3.5c0 3.5-2.5 6-6 6s-6-2.5-6-6V3Z" stroke="currentColor" stroke-width="1.6"/><path d="M9 15.5h6v3H9v-3Z" stroke="currentColor" stroke-width="1.6"/></svg>
+      </span>
+      <span data-role="site-name">Infinity Series Tournaments</span>
+    </a>
+    <button class="nav-toggle" aria-label="Меню"><span></span><span></span><span></span></button>
+    <nav class="nav-links">
+      <a href="/" data-page="home">Главная</a>
+      <a href="/news" data-page="news">Новости</a>
+      <a href="/participants" data-page="participants">Участники</a>
+      <a href="/schedule" data-page="schedule">Расписание</a>
+      <a href="/tournaments" data-page="tournaments">Турниры</a>
+      <a href="/register" data-page="register" class="nav-cta">Регистрация</a>
+      <a href="/team" data-page="team">Организация</a>
+      <a href="/account" data-page="account">Аккаунт</a>
+      <a href="/contacts" data-page="contacts">Контакты</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-surface">
+  <section class="section container reveal">
+    <span class="eyebrow">Участие в турнире</span>
+    <h1>Регистрация команды</h1>
+    <p class="tagline">Заполни форму — заявка попадёт на модерацию организатору и появится в разделе «Участники» после одобрения.</p>
+
+    <div class="card contact-card" id="rules" style="max-width:640px; margin-top:20px;">
+      <h3 style="margin-bottom:14px;">Правила сайта и турниров</h3>
+      <p class="tagline" style="margin-bottom:14px;">
+        Регистрируя команду, капитан и все игроки состава соглашаются соблюдать эти правила
+        на всех этапах турнира — в лобби, в чате, в голосовой связи и на трансляциях.
+      </p>
+      <ul class="rules-list">
+        <li><strong>Уважение к людям.</strong> Никакого расизма, дискриминации по национальности, полу, религии, ориентации или иным признакам.</li>
+        <li><strong>Без личных оскорблений.</strong> Оскорбления, унижения, травля соперников, судей, организаторов и зрителей — под запретом, в игре и вне её.</li>
+        <li><strong>Без нацистской и экстремистской символики.</strong> Запрещены никнеймы, картинки, эмблемы команды и любые материалы с нацистской, экстремистской символикой или её пропагандой.</li>
+        <li><strong>Без угроз и разжигания вражды.</strong> Угрозы насилием, призывы к вражде и агрессии — основание для немедленной дисквалификации.</li>
+        <li><strong>Честная игра.</strong> Читы, баги-эксплойты, договорные матчи, мультиаккаунты и подмена состава без согласования с организатором запрещены.</li>
+        <li><strong>Без спама и рекламы.</strong> Не использовать чаты и профиль команды для рекламы посторонних ресурсов, спама или мошенничества.</li>
+        <li><strong>Уважение к решениям организаторов.</strong> Судейские решения обязательны к исполнению; спорные ситуации решаются через раздел «Контакты», а не публичным конфликтом.</li>
+        <li><strong>18+ материалы запрещены.</strong> Никнеймы, аватары и сообщения не должны содержать порнографический или иной контент для взрослых.</li>
+        <li><strong>Честное эло Faceit.</strong> Указывать нужно реальное текущее эло каждого участника состава на Faceit — своё (в профиле аккаунта) или то, что вписывает капитан при регистрации. Заниженное или завышенное эло — нарушение правил: команда может быть вызвана на проверку к организаторам, и по итогам разбирательства ей грозит дисквалификация конкретного матча или полный бан команды/игрока на турнире.</li>
+      </ul>
+      <p class="tagline" style="margin-top:14px;">
+        Нарушение любого пункта может привести к отклонению заявки, дисквалификации команды с турнира
+        или бану аккаунта на сайте — на усмотрение организатора.
+      </p>
+    </div>
+
+    <!-- Показывается вместо формы сразу после успешной отправки заявки -->
+    <div class="card contact-card register-pending" id="register-pending" style="max-width:640px; margin-top:20px; display:none;">
+      <div class="ic">⏳</div>
+      <h3>Заявка отправлена! Ожидайте ответа модерации</h3>
+      <p id="register-pending-text">Организатор проверит состав и данные команды и одобрит или отклонит заявку. Карточка команды появится в разделе «Участники» сразу после одобрения.</p>
+      <p style="font-size:13px;">Зайди в свой аккаунт — там будет виден статус заявки, а когда её одобрят, кнопка «Аккаунт» в шапке сайта подсветится, чтобы ты не пропустил(а) это.</p>
+      <div class="btn-row">
+        <a class="btn small" href="/account">Перейти в аккаунт</a>
+        <button type="button" class="btn secondary small" id="register-another">Подать ещё одну заявку</button>
+      </div>
+    </div>
+
+    <div class="card contact-card" style="max-width:640px; margin-top:20px;" id="register-form-card">
+      <form id="register-form">
+        <div class="form-field">
+          <label>Аватар команды (необязательно)</label>
+          <div class="avatar-upload square" id="team-avatar-upload">
+            <div class="avatar-preview" id="team-avatar-preview">?</div>
+            <div class="avatar-controls">
+              <input type="file" id="teamAvatarFile" accept="image/*">
+              <span class="avatar-hint">JPG/PNG/WEBP, автоматически сожмётся</span>
+              <button type="button" class="avatar-remove" id="team-avatar-remove" style="display:none;">Убрать аватар</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="teamName">Название команды *</label>
+          <input id="teamName" name="teamName" type="text" required maxlength="60">
+        </div>
+        <div class="form-field">
+          <label for="game">Дисциплина *</label>
+          <select id="game" name="game" required style="width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-family:var(--font-body); font-size:14px;">
+            <option value="CS2">CS2</option>
+            <option value="Dota2">Dota 2</option>
+            <option value="PUBG">PUBG</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="captainName">Ник капитана *</label>
+          <input id="captainName" name="captainName" type="text" required maxlength="60" list="known-nicknames" autocomplete="off">
+        </div>
+        <div class="form-field">
+          <label for="contact">Контакт для связи (Telegram/Discord) *</label>
+          <input id="contact" name="contact" type="text" required maxlength="120">
+        </div>
+
+        <div class="form-field">
+          <label>Состав команды *</label>
+          <div class="roster-hint">
+            Впиши ник, ссылку на профиль Faceit и текущее эло каждого игрока (в том числе и капитана).
+            Если ник совпадает с зарегистрированным на сайте аккаунтом, у которого в профиле указано эло —
+            оно подставится само и в заявке появится ссылка на профиль игрока на сайте. Ссылку на Faceit
+            всё равно нужно вписать вручную для каждого игрока — капитан отвечает за то, что ник, ссылка
+            и эло соответствуют реальному Faceit-профилю игрока.
+          </div>
+          <div id="roster-rows"></div>
+          <button type="button" class="roster-add" id="roster-add">+ Добавить игрока</button>
+          <datalist id="known-nicknames"></datalist>
+          <div id="roster-avg-elo" style="margin-top:10px; font-weight:700;"></div>
+        </div>
+
+        <div class="form-field">
+          <label for="note">Комментарий (необязательно)</label>
+          <textarea id="note" name="note" placeholder="Опыт участия в турнирах, пожелания и т.д."></textarea>
+        </div>
+
+        <!-- Honeypot: невидимое человеку поле, боты часто заполняют
+             любые поля формы автоматически — если оно заполнено,
+             заявку тихо отклоняем как спам. -->
+        <div class="form-field hp-field" aria-hidden="true">
+          <label for="website">Оставьте это поле пустым</label>
+          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="form-field">
+          <label for="captchaAnswer" class="captcha-question" id="captcha-question">Проверка: сколько будет?</label>
+          <div class="captcha-row">
+            <input id="captchaAnswer" name="captchaAnswer" type="number" required>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label style="display:flex; align-items:flex-start; gap:10px; font-weight:400; cursor:pointer;">
+            <input type="checkbox" id="agreeRules" name="agreeRules" required style="width:auto; margin-top:3px;">
+            <span>Я и все игроки состава ознакомились и согласны соблюдать <a href="#rules">правила сайта и турниров</a>, указанные выше *</span>
+          </label>
+        </div>
+
+        <div id="register-status" style="margin-bottom:14px; font-size:14px;"></div>
+        <button class="btn" id="register-submit" type="submit">Отправить заявку</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <span>© 2026 <span data-role="site-name">Infinity Series Tournaments</span></span>
+    <a data-role="footer-email" href="#"></a>
+    <a class="footer-faceit-btn" href="https://www.faceit.com/ru/organizers/a6bb0df2-dc1e-46ce-8d1d-ac4a4af497b9/INFINITY%20Series%20Tournments" target="_blank" rel="noopener">Faceit турнир</a>
+  </div>
+</footer>
+
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="assets/js/firebase-config.js"></script>
+<script defer src="assets/js/main.js"></script>
+<script defer src="assets/js/register.js"></script>
+</body>
+</html>

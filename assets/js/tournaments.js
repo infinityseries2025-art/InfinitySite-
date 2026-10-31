@@ -1,0 +1,141 @@
+/* =========================================================
+   Публичная страница "Турниры": список сеток (без кнопок
+   управления) + таблица рейтинга Эло по играм.
+========================================================= */
+
+const gameLabelT = { CS2: 'CS2', Dota2: 'Dota 2', PUBG: 'PUBG' };
+
+function tournamentCardHTML(t){
+  const statusBadge = t.status === 'finished'
+    ? `<span class="status-tag finished">Завершён</span>`
+    : `<span class="status-tag live">Идёт сейчас</span>`;
+  const winnerLine = t.status === 'finished' && t.winner
+    ? `<div class="tournament-winner">🏆 Победитель — <strong>${t.winner}</strong></div>`
+    : '';
+  return `
+  <div class="card tournament-card">
+    <div class="tournament-head">
+      <div>
+        <span class="game-tag ${gameClass[t.game] || 'custom'}">${gameLabelT[t.game] || t.game}</span>
+        <h3>${t.name}</h3>
+      </div>
+      ${statusBadge}
+    </div>
+    ${winnerLine}
+    ${bracketHTML(t, { isAdmin: false })}
+  </div>`;
+}
+
+async function renderTournaments(){
+  const wrap = document.querySelector('[data-role="tournaments-list"]');
+  if(!wrap || typeof db === 'undefined') return;
+  try{
+    const snap = await db.collection('tournaments').orderBy('createdAt', 'desc').get();
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    wrap.innerHTML = list.length
+      ? list.map(tournamentCardHTML).join('')
+      : `<div class="empty-state">Турниров пока нет — загляните позже.</div>`;
+  }catch(e){
+    console.error(e);
+    wrap.innerHTML = `<div class="empty-state">Не удалось загрузить турниры.</div>`;
+  }
+}
+
+function trophyBadges(trophies){
+  if(!trophies || !trophies.length) return '';
+  return `<div class="trophy-list">${trophies.map(t => `<span class="trophy-badge" title="${t}">🏆 ${t}</span>`).join('')}</div>`;
+}
+
+function teamMapChipsHTML(maps){
+  const entries = Object.entries(maps || {}).filter(([, s]) => (s.wins || 0) + (s.losses || 0) > 0);
+  if(!entries.length) return '';
+  entries.sort((a, b) => ((b[1].wins||0)+(b[1].losses||0)) - ((a[1].wins||0)+(a[1].losses||0)));
+  return `<div class="team-map-chips">${entries.map(([map, s]) => {
+    const wr = winratePct(s.wins, s.losses);
+    return `<span class="map-chip" title="${map}: ${s.wins||0}W · ${s.losses||0}L">${map} <b>${wr}%</b></span>`;
+  }).join('')}</div>`;
+}
+
+async function renderLeaderboard(){
+  const tabsWrap = document.querySelector('[data-role="leaderboard-tabs"]');
+  const tableWrap = document.querySelector('[data-role="leaderboard-table"]');
+  if(!tabsWrap || !tableWrap || typeof db === 'undefined') return;
+
+  let teams = [];
+  try{
+    const snap = await db.collection('teams').get();
+    teams = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }catch(e){
+    console.error(e);
+    tableWrap.innerHTML = `<div class="empty-state">Не удалось загрузить рейтинг.</div>`;
+    return;
+  }
+
+  // Список дисциплин собираем прямо из данных команд, а не из
+  // фиксированного массива — так любая игра, добавленная организатором
+  // через "Список игр" в admin.html, сразу получает свою вкладку
+  // рейтинга наравне с CS2/Dota2/PUBG, без правок кода.
+  const knownOrder = ['CS2', 'Dota2', 'PUBG'];
+  const allGames = [...new Set(teams.map(t => t.game).filter(Boolean))];
+  const games = [
+    ...knownOrder.filter(g => allGames.includes(g)),
+    ...allGames.filter(g => !knownOrder.includes(g)).sort((a, b) => a.localeCompare(b)),
+  ];
+  if(!games.length){
+    tabsWrap.innerHTML = '';
+    tableWrap.innerHTML = `<div class="empty-state">Рейтинг появится после первого завершённого турнира.</div>`;
+    return;
+  }
+
+  tabsWrap.innerHTML = games.map((g, i) => `<button class="filter-btn ${i === 0 ? 'active' : ''}" data-game="${g}" style="--i:${i}">${gameLabelT[g] || g}</button>`).join('');
+
+  function draw(game){
+    const rows = teams.filter(t => t.game === game).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
+    tableWrap.innerHTML = `
+    <div class="leaderboard-head">
+      <div class="lb-rank">#</div>
+      <div class="lb-name">Команда</div>
+      <div class="lb-record">W · L</div>
+      <div class="lb-winrate">Винрейт</div>
+      <div class="lb-elo">Эло</div>
+    </div>
+    <div class="leaderboard-table">
+      ${rows.map((t, i) => {
+        const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+        const medal = i < 3 ? `<span class="lb-medal"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="9.5" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M6 4 4.5 1M10 4 11.5 1" stroke="currentColor" stroke-width="1.4"/><path d="M8 7v5" stroke="currentColor" stroke-width="1.4"/></svg></span>` : '';
+        const wr = winratePct(t.wins, t.losses);
+        const mapChips = teamMapChipsHTML(t.maps);
+        return `
+        <div class="leaderboard-row ${rankClass} ${mapChips ? 'has-maps' : ''}" style="--i:${i}">
+          <div class="lb-rank">${medal}#${i + 1}</div>
+          <div class="lb-name">${t.name}${trophyBadges(t.trophies)}</div>
+          <div class="lb-record">${t.wins || 0}W · ${t.losses || 0}L</div>
+          <div class="lb-winrate">${wr === null ? '—' : wr + '%'}</div>
+          <div class="lb-elo">${t.elo || 1000}</div>
+          ${mapChips ? `<button type="button" class="lb-maps-toggle" aria-label="Статистика по картам">Карты ▾</button>
+          <div class="lb-maps-panel">${mapChips}</div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+
+    tableWrap.querySelectorAll('.lb-maps-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.closest('.leaderboard-row').classList.toggle('maps-open');
+      });
+    });
+  }
+  draw(games[0]);
+
+  tabsWrap.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabsWrap.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      draw(btn.getAttribute('data-game'));
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderTournaments();
+  renderLeaderboard();
+});
