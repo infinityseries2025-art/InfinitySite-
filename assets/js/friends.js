@@ -169,10 +169,10 @@ function friendRowHTML(uid, nickname, avatar, extraHTML){
   const initials = (nickname || '?').slice(0, 2).toUpperCase();
   return `
   <div class="friend-row" data-uid="${uid}">
-    <a href="account.html?u=${encodeURIComponent(uid)}" class="friend-row-avatar">
+    <a href="/account?u=${encodeURIComponent(uid)}" class="friend-row-avatar">
       ${avatar ? `<img src="${avatar}" alt="${nickname}">` : initials}
     </a>
-    <a href="account.html?u=${encodeURIComponent(uid)}" class="friend-row-name">${nickname || 'Без ника'}</a>
+    <a href="/account?u=${encodeURIComponent(uid)}" class="friend-row-name">${nickname || 'Без ника'}</a>
     <span class="friend-row-actions">${extraHTML || ''}</span>
   </div>`;
 }

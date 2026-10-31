@@ -68,6 +68,7 @@ auth.onAuthStateChanged(async (user) => {
     if(accountsTabBtn) accountsTabBtn.style.display = owner ? '' : 'none';
     await loadUsersCache();
     startApplicationsListener();
+    if(typeof startMessagesListener === 'function') startMessagesListener();
   }else{
     // сюда попадает и гость, и обычный пользователь (создавший аккаунт на
     // account.html), который зашёл на admin.html напрямую по ссылке —
@@ -75,6 +76,7 @@ auth.onAuthStateChanged(async (user) => {
     loginSection.style.display = 'block';
     contentSection.style.display = 'none';
     if(unsubscribeApps){ unsubscribeApps(); unsubscribeApps = null; }
+    if(messagesUnsub){ messagesUnsub(); messagesUnsub = null; }
   }
 });
 
@@ -221,7 +223,7 @@ function rosterToHTML(roster){
   if(Array.isArray(roster)){
     return roster.map(p => {
       if(!p || !p.nickname) return '';
-      const linkMark = p.uid ? ` <a href="account.html?u=${p.uid}" target="_blank" rel="noopener" class="admin-inline-link" title="Открыть аккаунт на сайте">🔗 аккаунт</a>` : '';
+      const linkMark = p.uid ? ` <a href="/account?u=${p.uid}" target="_blank" rel="noopener" class="admin-inline-link" title="Открыть аккаунт на сайте">🔗 аккаунт</a>` : '';
       const eloMark = p.elo ? ` (эло ${p.elo})` : '';
       const faceitMark = p.faceit ? ` <a href="${p.faceit}" target="_blank" rel="noopener" class="admin-inline-link admin-inline-link--faceit">Faceit ↗</a>` : '';
       return `${p.nickname}${eloMark}${linkMark}${faceitMark}`;
@@ -248,7 +250,7 @@ function appCardHTML(doc, isNew){
       <span class="app-status-badge ${d.status}">${statusLabels[d.status] || d.status}${isNew ? ' · новая' : ''}</span>
     </div>
     <div style="font-size:13px; color:var(--color-ink-soft);">
-      Игра: ${d.game || '—'} · Капитан: ${d.captainName || '—'}${d.captainUid ? ` <a href="account.html?u=${d.captainUid}" target="_blank" rel="noopener" class="admin-inline-link" title="Открыть аккаунт на сайте">🔗 аккаунт</a>` : ''}<br>
+      Игра: ${d.game || '—'} · Капитан: ${d.captainName || '—'}${d.captainUid ? ` <a href="/account?u=${d.captainUid}" target="_blank" rel="noopener" class="admin-inline-link" title="Открыть аккаунт на сайте">🔗 аккаунт</a>` : ''}<br>
       Контакт: ${d.contact || '—'}<br>
       ${d.avgElo ? `Средний эло состава: <strong>${d.avgElo}</strong><br>` : ''}
       Состав: ${roster || '—'}

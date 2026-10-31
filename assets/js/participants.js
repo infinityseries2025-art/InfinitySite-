@@ -27,7 +27,7 @@ function rosterPillHTML(p){
   const eloSuffix = p.elo ? (' · ' + p.elo) : '';
   const title = p.elo ? ('Эло Faceit: ' + p.elo) : '';
   const pill = p.uid
-    ? '<a class="roster-pill" href="account.html?u=' + p.uid + '" title="' + (title || ('Открыть профиль ' + nickname)) + '" onclick="event.stopPropagation();">' + dot + nickname + eloSuffix + '</a>'
+    ? '<a class="roster-pill" href="/account?u=' + p.uid + '" title="' + (title || ('Открыть профиль ' + nickname)) + '" onclick="event.stopPropagation();">' + dot + nickname + eloSuffix + '</a>'
     : '<span class="roster-pill" title="' + title + '">' + nickname + eloSuffix + '</span>';
   const faceitLink = p.faceit
     ? '<a class="roster-pill roster-faceit-link" href="' + p.faceit + '" target="_blank" rel="noopener" title="Профиль ' + nickname + ' на Faceit" onclick="event.stopPropagation();">Faceit ↗</a>'
@@ -41,7 +41,7 @@ function participantCardHTML(t, i){
   const roster = normalizeRoster(t.roster);
   const initials = (t.teamName || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   const captainLine = t.captainUid
-    ? 'Капитан: <a href="account.html?u=' + t.captainUid + '" style="color:var(--color-accent);" onclick="event.stopPropagation();">' + (t.captainName || '—') + '</a>'
+    ? 'Капитан: <a href="/account?u=' + t.captainUid + '" style="color:var(--color-accent);" onclick="event.stopPropagation();">' + (t.captainName || '—') + '</a>'
     : 'Капитан: ' + (t.captainName || '—');
   return '' +
   '<div class="card team-card participant-card" style="--i:' + i + '; text-align:left; padding:20px 22px;" data-team-id="' + t.id + '" tabindex="0" role="button" aria-label="Открыть кабинет команды ' + t.teamName + '">' +
@@ -56,7 +56,7 @@ function participantCardHTML(t, i){
     '</div>' +
     '<div class="role" style="margin-bottom:6px;">' + captainLine + '</div>' +
     (t.avgElo ? ('<div class="role" style="margin-bottom:10px;">Средний эло состава: <strong>' + t.avgElo + '</strong></div>') : '') +
-    (roster.length ? ('<ul style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; list-style:none; padding:0;">' +
+    (roster.length ? ('<ul class="roster-list-column" style="display:flex; flex-direction:column; gap:6px; margin-bottom:4px; list-style:none; padding:0;">' +
       roster.map(function(p){ return '<li>' + rosterPillHTML(p) + '</li>'; }).join('') +
     '</ul>') : '') +
     '<div class="participant-open-hint">' +
@@ -168,7 +168,7 @@ async function renderCabinetAccessZone(team){
     zone.innerHTML = '' +
       '<div class="cabinet-locked">' +
         'Этот раздел кабинета — для игроков состава команды «' + escapeHTML(team.teamName) + '». ' +
-        'Если ты один из них — <a href="account.html">войди в свой аккаунт</a> (тот же ник, что указан в заявке), ' +
+        'Если ты один из них — <a href="/account">войди в свой аккаунт</a> (тот же ник, что указан в заявке), ' +
         'и после этого открой карточку команды снова: появится ссылка на участие в турнире Faceit ' +
         'и лента сообщений от лица команды.' +
       '</div>';

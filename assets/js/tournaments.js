@@ -46,6 +46,16 @@ function trophyBadges(trophies){
   return `<div class="trophy-list">${trophies.map(t => `<span class="trophy-badge" title="${t}">🏆 ${t}</span>`).join('')}</div>`;
 }
 
+function teamMapChipsHTML(maps){
+  const entries = Object.entries(maps || {}).filter(([, s]) => (s.wins || 0) + (s.losses || 0) > 0);
+  if(!entries.length) return '';
+  entries.sort((a, b) => ((b[1].wins||0)+(b[1].losses||0)) - ((a[1].wins||0)+(a[1].losses||0)));
+  return `<div class="team-map-chips">${entries.map(([map, s]) => {
+    const wr = winratePct(s.wins, s.losses);
+    return `<span class="map-chip" title="${map}: ${s.wins||0}W · ${s.losses||0}L">${map} <b>${wr}%</b></span>`;
+  }).join('')}</div>`;
+}
+
 async function renderLeaderboard(){
   const tabsWrap = document.querySelector('[data-role="leaderboard-tabs"]');
   const tableWrap = document.querySelector('[data-role="leaderboard-table"]');
@@ -82,19 +92,37 @@ async function renderLeaderboard(){
   function draw(game){
     const rows = teams.filter(t => t.game === game).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
     tableWrap.innerHTML = `
+    <div class="leaderboard-head">
+      <div class="lb-rank">#</div>
+      <div class="lb-name">Команда</div>
+      <div class="lb-record">W · L</div>
+      <div class="lb-winrate">Винрейт</div>
+      <div class="lb-elo">Эло</div>
+    </div>
     <div class="leaderboard-table">
       ${rows.map((t, i) => {
         const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
         const medal = i < 3 ? `<span class="lb-medal"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="9.5" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M6 4 4.5 1M10 4 11.5 1" stroke="currentColor" stroke-width="1.4"/><path d="M8 7v5" stroke="currentColor" stroke-width="1.4"/></svg></span>` : '';
+        const wr = winratePct(t.wins, t.losses);
+        const mapChips = teamMapChipsHTML(t.maps);
         return `
-        <div class="leaderboard-row ${rankClass}" style="--i:${i}">
+        <div class="leaderboard-row ${rankClass} ${mapChips ? 'has-maps' : ''}" style="--i:${i}">
           <div class="lb-rank">${medal}#${i + 1}</div>
           <div class="lb-name">${t.name}${trophyBadges(t.trophies)}</div>
           <div class="lb-record">${t.wins || 0}W · ${t.losses || 0}L</div>
+          <div class="lb-winrate">${wr === null ? '—' : wr + '%'}</div>
           <div class="lb-elo">${t.elo || 1000}</div>
+          ${mapChips ? `<button type="button" class="lb-maps-toggle" aria-label="Статистика по картам">Карты ▾</button>
+          <div class="lb-maps-panel">${mapChips}</div>` : ''}
         </div>`;
       }).join('')}
     </div>`;
+
+    tableWrap.querySelectorAll('.lb-maps-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.closest('.leaderboard-row').classList.toggle('maps-open');
+      });
+    });
   }
   draw(games[0]);
 

@@ -1,14 +1,11 @@
 {
   "hosting": {
     "public": ".",
-    "ignore": [
-      "firebase.json",
-      ".firebaserc",
-      "**/node_modules/**",
-      "deploy/**",
-      "index-old.html",
-      "mlt-site.html",
-      "site.zip"
-    ]
+    "cleanUrls": true,
+    "ignore": ["firebase.json", ".firebaserc", "**/.*", "**/node_modules/**", "README.md", "scripts/**", "preview/**"],
+    "headers": [{
+      "source": "assets/css/**",
+      "headers": [{"key": "Cache-Control", "value": "public,max-age=0,must-revalidate"}]
+    }]
   }
 }

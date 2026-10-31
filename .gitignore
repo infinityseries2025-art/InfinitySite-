@@ -1,0 +1,20 @@
+# Generated screenshots and browser-check reports
+/preview/
+
+# Dependencies, logs and local editor files
+node_modules/
+*.log
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local credentials and Firebase tooling cache
+.env
+.env.*
+!.env.example
+.firebase/
+firebase-debug.log*
+*-debug.log
+*service-account*.json
+*serviceAccount*.json

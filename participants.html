@@ -8,12 +8,13 @@
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/editorial.css">
 </head>
 <body data-page="participants">
 
 <header class="navbar">
   <div class="container">
-    <a href="index.html" class="brand">
+    <a href="/" class="brand">
       <span class="brand-mark" data-role="brand-mark">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h12v3.5c0 3.5-2.5 6-6 6s-6-2.5-6-6V3Z" stroke="currentColor" stroke-width="1.6"/><path d="M9 15.5h6v3H9v-3Z" stroke="currentColor" stroke-width="1.6"/></svg>
       </span>
@@ -21,15 +22,15 @@
     </a>
     <button class="nav-toggle" aria-label="Меню"><span></span><span></span><span></span></button>
     <nav class="nav-links">
-      <a href="index.html" data-page="home">Главная</a>
-      <a href="news.html" data-page="news">Новости</a>
-      <a href="participants.html" data-page="participants">Участники</a>
-      <a href="schedule.html" data-page="schedule">Расписание</a>
-      <a href="tournaments.html" data-page="tournaments">Турниры</a>
-      <a href="register.html" data-page="register" class="nav-cta">Регистрация</a>
-      <a href="team.html" data-page="team">Организация</a>
-      <a href="account.html" data-page="account">Аккаунт</a>
-      <a href="contacts.html" data-page="contacts">Контакты</a>
+      <a href="/" data-page="home">Главная</a>
+      <a href="/news" data-page="news">Новости</a>
+      <a href="/participants" data-page="participants">Участники</a>
+      <a href="/schedule" data-page="schedule">Расписание</a>
+      <a href="/tournaments" data-page="tournaments">Турниры</a>
+      <a href="/register" data-page="register" class="nav-cta">Регистрация</a>
+      <a href="/team" data-page="team">Организация</a>
+      <a href="/account" data-page="account">Аккаунт</a>
+      <a href="/contacts" data-page="contacts">Контакты</a>
     </nav>
   </div>
 </header>
@@ -38,7 +39,7 @@
   <section class="section container reveal">
     <span class="eyebrow">Турнир</span>
     <h1>Команды-участники</h1>
-    <p class="tagline">Составы, прошедшие модерацию организатора. Хочешь попасть в список? <a href="register.html" style="color:var(--color-accent); font-weight:700;">Подай заявку →</a></p>
+    <p class="tagline">Составы, прошедшие модерацию организатора. Хочешь попасть в список? <a href="/register" style="color:var(--color-accent); font-weight:700;">Подай заявку →</a></p>
     <div class="grid cols-3" data-role="participants-list" style="margin-top:28px;"></div>
   </section>
 </main>

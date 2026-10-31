@@ -100,7 +100,7 @@ async function loadPlayerTeamBadge(uid){
 
     const initials = (team.teamName || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
     wrap.innerHTML = '' +
-      '<a class="pv-team-badge" href="participants.html?team=' + encodeURIComponent(team.id) + '">' +
+      '<a class="pv-team-badge" href="/participants?team=' + encodeURIComponent(team.id) + '">' +
         '<span class="pv-team-badge-avatar">' +
           (team.teamAvatar ? ('<img src="' + team.teamAvatar + '" alt="' + team.teamName + '">') : initials) +
         '</span>' +
@@ -413,7 +413,7 @@ function applicationStatusHTML(app){
     text = 'Заявка команды «' + app.teamName + '» была отклонена организатором. Если это неожиданно — напиши в «Контакты», чтобы уточнить причину, или подай новую заявку.';
   }
   const link = app.status === 'approved'
-    ? '<div style="margin-top:10px;"><a class="btn secondary small" href="participants.html">Открыть «Участники» →</a></div>'
+    ? '<div style="margin-top:10px;"><a class="btn secondary small" href="/participants">Открыть «Участники» →</a></div>'
     : '';
   return '' +
     '<div class="status-banner ' + app.status + '">' +

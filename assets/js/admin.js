@@ -191,6 +191,10 @@ const addGameBtn = document.getElementById('add-game-btn');
 
 async function refreshGamesList(){
   gamesListCache = await loadGamesList();
+  if(tMapGameSelect){
+    const cur = tMapGameSelect.value;
+    tMapGameSelect.innerHTML = gameOptionsHTML(gamesListCache.includes(cur) ? cur : gamesListCache[0]);
+  }
   if(tGameSelect){
     const current = tGameSelect.value;
     tGameSelect.innerHTML = gameOptionsHTML(gamesListCache.includes(current) ? current : gamesListCache[0]);
@@ -221,11 +225,53 @@ if(addGameBtn){
   });
 }
 
+/* ---------------------- СПИСОК КАРТ ---------------------- */
+const tMapGameSelect = document.getElementById('tMapGame');
+const newMapInput = document.getElementById('newMapName');
+const addMapBtn = document.getElementById('add-map-btn');
+let mapsCache = {}; // { [game]: [mapNames] }
+
+async function refreshMapsCache(){
+  const games = [...new Set([...gamesListCache, ...tournamentsCache.map(t => t.game)].filter(Boolean))];
+  const entries = await Promise.all(games.map(async (g) => [g, await loadMapsList(g)]));
+  mapsCache = Object.fromEntries(entries);
+}
+
+if(tMapGameSelect){
+  tMapGameSelect.innerHTML = gameOptionsHTML(gamesListCache[0]);
+}
+
+if(addMapBtn){
+  addMapBtn.addEventListener('click', async () => {
+    const game = tMapGameSelect ? tMapGameSelect.value : '';
+    const name = (newMapInput.value || '').trim();
+    if(!game){ alert('Выбери игру, для которой добавляешь карту.'); return; }
+    if(!name){ alert('Введи название карты.'); return; }
+    if((mapsCache[game] || []).some(m => m.toLowerCase() === name.toLowerCase())){
+      alert('Такая карта уже есть в списке для этой игры.');
+      return;
+    }
+    addMapBtn.disabled = true;
+    try{
+      await addCustomMap(game, name);
+      mapsCache[game] = await loadMapsList(game);
+      newMapInput.value = '';
+      renderTournamentsList();
+    }catch(err){
+      console.error(err);
+      alert('Не удалось добавить карту. Попробуй ещё раз.');
+    }finally{
+      addMapBtn.disabled = false;
+    }
+  });
+}
+
 /* ---------------------- ТУРНИРЫ И ЭЛО ---------------------- */
 const tournamentForm = document.getElementById('tournament-form');
 const tournamentsWrap = document.getElementById('tournaments-admin-list');
 let tournamentsCache = [];
 let tournamentsUnsub = null;
+let editingTournamentId = null; // турнир, у которого сейчас открыта панель редактирования
 
 function tournamentAdminCardHTML(t){
   const winnerReady = t.status === 'ongoing' && tournamentWinner(t.rounds);
@@ -235,8 +281,10 @@ function tournamentAdminCardHTML(t){
   const winnerLine = t.status === 'finished' && t.winner
     ? `<div class="tournament-winner">🏆 Победитель — <strong>${t.winner}</strong> (титул и Эло уже начислены)</div>`
     : '';
+  const canEditTeams = playedMatches(t.rounds).length === 0;
+  const isEditing = editingTournamentId === t.id;
   return `
-  <div class="card tournament-card">
+  <div class="card tournament-card" data-tid="${t.id}">
     <div class="tournament-head">
       <div>
         <span class="game-tag ${gameClass[t.game] || 'custom'}">${t.game}</span>
@@ -245,22 +293,64 @@ function tournamentAdminCardHTML(t){
       ${statusBadge}
     </div>
     ${winnerLine}
-    ${bracketHTML(t, { isAdmin: t.status === 'ongoing' })}
+    ${isEditing ? tournamentEditFormHTML(t, canEditTeams) : ''}
+    ${bracketHTML(t, { isAdmin: t.status === 'ongoing', maps: mapsCache[t.game] || [] })}
+    ${t.status === 'finished' ? `<p class="tagline" style="margin:10px 0 0; font-size:12px;">Турнир завершён — результаты матчей уже нельзя изменить (Эло и титул уже начислены).</p>` : ''}
     <div class="admin-actions" style="margin-top:14px;">
       ${winnerReady ? `<button type="button" class="btn finish-tournament" data-tid="${t.id}">Завершить турнир и наградить победителя</button>` : ''}
+      <button type="button" class="btn secondary edit-tournament" data-tid="${t.id}">${isEditing ? 'Закрыть редактирование' : '✎ Редактировать турнир'}</button>
       <button type="button" class="btn secondary delete-tournament" data-tid="${t.id}">Удалить турнир</button>
     </div>
   </div>`;
 }
 
+function tournamentEditFormHTML(t, canEditTeams){
+  const teamNames = t.rounds[0].matches.flatMap(m => [m.teamA, m.teamB]).filter(n => n !== 'BYE');
+  return `
+  <div class="tournament-edit-panel">
+    <div class="form-field">
+      <label>Название турнира</label>
+      <input type="text" class="te-name" maxlength="80" value="${t.name}">
+    </div>
+    <div class="form-field">
+      <label>Игра</label>
+      <select class="te-game" style="width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--color-primary-line); background:var(--color-surface-alt); color:var(--color-text); font-family:var(--font-body); font-size:14px;">
+        ${gameOptionsHTML(t.game)}
+      </select>
+    </div>
+    ${canEditTeams ? `
+    <div class="form-field">
+      <label>Команды (по одной на строке, минимум 2)</label>
+      <textarea class="te-teams" style="min-height:110px;">${teamNames.join('\n')}</textarea>
+      <div class="tagline" style="margin:6px 0 0; font-size:12.5px;">
+        Пока ни один матч ещё не сыгран, список команд можно поменять — сетка перестроится заново.
+      </div>
+    </div>` : `
+    <div class="tagline" style="margin:0 0 10px; font-size:12.5px;">
+      В сетке уже есть сыгранные матчи, поэтому список команд менять нельзя — можно исправлять
+      результаты матчей прямо в сетке ниже. Название и игру менять по-прежнему можно.
+    </div>`}
+    <div class="admin-actions">
+      <button type="button" class="btn save-tournament-edit" data-tid="${t.id}">Сохранить изменения</button>
+      <button type="button" class="btn secondary cancel-tournament-edit">Отмена</button>
+    </div>
+  </div>`;
+}
+
+function renderTournamentsList(){
+  if(!tournamentsWrap) return;
+  tournamentsWrap.innerHTML = tournamentsCache.length
+    ? tournamentsCache.map(tournamentAdminCardHTML).join('')
+    : `<div class="empty-state">Турниров пока нет — создай первый выше.</div>`;
+}
+
 function startTournamentsListener(){
   if(tournamentsUnsub || !tournamentsWrap) return;
   tournamentsUnsub = db.collection('tournaments').orderBy('createdAt', 'desc')
-    .onSnapshot((snap) => {
+    .onSnapshot(async (snap) => {
       tournamentsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      tournamentsWrap.innerHTML = tournamentsCache.length
-        ? tournamentsCache.map(tournamentAdminCardHTML).join('')
-        : `<div class="empty-state">Турниров пока нет — создай первый выше.</div>`;
+      await refreshMapsCache();
+      renderTournamentsList();
     }, (err) => console.error(err));
 }
 function stopTournamentsListener(){
@@ -295,23 +385,107 @@ if(tournamentForm){
 
 if(tournamentsWrap){
   tournamentsWrap.addEventListener('click', async (e) => {
-    const pickBtn = e.target.closest('.bracket-pick');
-    if(pickBtn){
-      const tid = pickBtn.getAttribute('data-tid');
-      const ri = Number(pickBtn.getAttribute('data-round'));
-      const mi = Number(pickBtn.getAttribute('data-match'));
-      const team = pickBtn.getAttribute('data-team');
+    // --- панель ввода/правки результата матча ---
+    const toggleBtn = e.target.closest('.bracket-toggle-panel');
+    if(toggleBtn){
+      const slot = toggleBtn.closest('.bracket-slot');
+      const panel = slot.querySelector('.bracket-result-panel');
+      if(panel) panel.hidden = !panel.hidden;
+      return;
+    }
+
+    const confirmBtn = e.target.closest('.bracket-confirm');
+    if(confirmBtn){
+      const panel = confirmBtn.closest('.bracket-result-panel');
+      const tid = panel.getAttribute('data-tid');
+      const ri = Number(panel.getAttribute('data-round'));
+      const mi = Number(panel.getAttribute('data-match'));
+      const side = confirmBtn.getAttribute('data-side');
       const t = tournamentsCache.find(x => x.id === tid);
       if(!t) return;
-      const rounds = t.rounds.map(r => ({ matches: r.matches.map(m => ({ ...m })) }));
-      const match = rounds[ri].matches[mi];
-      match.winner = team === 'A' ? match.teamA : match.teamB;
-      const advanced = advanceRounds(rounds);
+      const scoreA = panel.querySelector('.rp-scoreA').value;
+      const scoreB = panel.querySelector('.rp-scoreB').value;
+      const map = panel.querySelector('.rp-map').value;
+      confirmBtn.disabled = true;
       try{
-        await db.collection('tournaments').doc(tid).update({ rounds: advanced });
+        const rounds = setMatchResult(t.rounds, ri, mi, { winnerSide: side, scoreA, scoreB, map });
+        await db.collection('tournaments').doc(tid).update({ rounds });
       }catch(err){
         console.error(err);
         alert('Не удалось сохранить результат матча.');
+      }finally{
+        confirmBtn.disabled = false;
+      }
+      return;
+    }
+
+    const clearBtn = e.target.closest('.bracket-clear');
+    if(clearBtn){
+      const panel = clearBtn.closest('.bracket-result-panel');
+      const tid = panel.getAttribute('data-tid');
+      const ri = Number(panel.getAttribute('data-round'));
+      const mi = Number(panel.getAttribute('data-match'));
+      const t = tournamentsCache.find(x => x.id === tid);
+      if(!t) return;
+      if(!confirm('Сбросить результат этого матча? Всё, что уже построено дальше по сетке из него, тоже сбросится.')) return;
+      try{
+        const rounds = clearMatchResult(t.rounds, ri, mi);
+        await db.collection('tournaments').doc(tid).update({ rounds });
+      }catch(err){
+        console.error(err);
+        alert('Не удалось сбросить результат матча.');
+      }
+      return;
+    }
+
+    // --- редактирование названия/игры/списка команд турнира ---
+    const editBtn = e.target.closest('.edit-tournament');
+    if(editBtn){
+      const tid = editBtn.getAttribute('data-tid');
+      editingTournamentId = editingTournamentId === tid ? null : tid;
+      renderTournamentsList();
+      return;
+    }
+
+    const cancelEditBtn = e.target.closest('.cancel-tournament-edit');
+    if(cancelEditBtn){
+      editingTournamentId = null;
+      renderTournamentsList();
+      return;
+    }
+
+    const saveEditBtn = e.target.closest('.save-tournament-edit');
+    if(saveEditBtn){
+      const tid = saveEditBtn.getAttribute('data-tid');
+      const t = tournamentsCache.find(x => x.id === tid);
+      const panel = saveEditBtn.closest('.tournament-edit-panel');
+      if(!t || !panel) return;
+      const name = panel.querySelector('.te-name').value.trim();
+      const game = panel.querySelector('.te-game').value;
+      const teamsField = panel.querySelector('.te-teams');
+      if(!name){ alert('Название турнира не может быть пустым.'); return; }
+
+      const payload = { name, game };
+      if(teamsField){
+        const teamNames = teamsField.value.split('\n').map(s => s.trim()).filter(Boolean);
+        if(teamNames.length < 2){ alert('Нужно минимум 2 команды.'); return; }
+        const currentNames = t.rounds[0].matches.flatMap(m => [m.teamA, m.teamB]).filter(n => n !== 'BYE');
+        const changed = teamNames.length !== currentNames.length || teamNames.some((n, i) => n !== currentNames[i]);
+        if(changed){
+          if(!confirm('Список команд изменён — сетка турнира будет построена заново, текущий прогресс (если он был) сотрётся. Продолжить?')) return;
+          payload.rounds = buildBracket(teamNames);
+        }
+      }
+
+      saveEditBtn.disabled = true;
+      try{
+        await db.collection('tournaments').doc(tid).update(payload);
+        editingTournamentId = null;
+      }catch(err){
+        console.error(err);
+        alert('Не удалось сохранить изменения турнира.');
+      }finally{
+        saveEditBtn.disabled = false;
       }
       return;
     }
@@ -346,6 +520,10 @@ if(tournamentsWrap){
       }
     }
   });
+
+  // Значения счёта/карты в открытой панели не должны теряться при
+  // каждом onSnapshot-перерендере — но у нас рендер целиком по клику/снапшоту,
+  // так что просто не закрываем панель без явного действия пользователя.
 }
 
 /* Начисляет Эло за все сыгранные матчи турнира и выдаёт титул
@@ -374,13 +552,20 @@ async function finishTournament(t){
 
   try{
     await db.runTransaction(async (tx) => {
-      const refs = {}, baseline = {}, delta = {}, wins = {}, losses = {};
+      const refs = {}, baseline = {}, delta = {}, wins = {}, losses = {}, mapDelta = {};
       for(const name of names){
         const ref = db.collection('teams').doc(slugTeam(t.game, name));
         const snap = await tx.get(ref);
         refs[name] = ref;
         baseline[name] = snap.exists && typeof snap.data().elo === 'number' ? snap.data().elo : 1000;
         delta[name] = 0; wins[name] = 0; losses[name] = 0;
+        mapDelta[name] = (snap.exists && snap.data().maps) ? { ...snap.data().maps } : {};
+      }
+
+      function bumpMap(name, map, isWin){
+        if(!map) return;
+        const cur = mapDelta[name][map] || { wins: 0, losses: 0 };
+        mapDelta[name][map] = { wins: cur.wins + (isWin ? 1 : 0), losses: cur.losses + (isWin ? 0 : 1) };
       }
 
       matches.forEach(m => {
@@ -394,6 +579,8 @@ async function finishTournament(t){
         delta[lName] += newLoser - baseline[lName];
         wins[wName] += 1;
         losses[lName] += 1;
+        bumpMap(wName, m.map, true);
+        bumpMap(lName, m.map, false);
       });
 
       names.forEach(name => {
@@ -402,6 +589,7 @@ async function finishTournament(t){
           elo: Math.round(baseline[name] + delta[name]),
           wins: firebase.firestore.FieldValue.increment(wins[name]),
           losses: firebase.firestore.FieldValue.increment(losses[name]),
+          maps: mapDelta[name],
         };
         if(name === winnerName){
           payload.trophies = firebase.firestore.FieldValue.arrayUnion(`${TROPHY_PREFIX} ${t.name}`);
@@ -424,13 +612,27 @@ let teamsUnsub = null;
 let teamsCache = [];
 let teamsActiveGame = null;
 
+function teamMapStatsHTML(team){
+  const maps = team.maps || {};
+  const entries = Object.entries(maps).filter(([, s]) => (s.wins || 0) + (s.losses || 0) > 0);
+  if(!entries.length) return `<span class="team-map-empty">Нет данных по картам</span>`;
+  entries.sort((a, b) => ((b[1].wins||0)+(b[1].losses||0)) - ((a[1].wins||0)+(a[1].losses||0)));
+  return entries.map(([map, s]) => {
+    const wr = winratePct(s.wins, s.losses);
+    return `<span class="map-chip" title="${map}: ${s.wins||0}W · ${s.losses||0}L">${map} <b>${wr}%</b></span>`;
+  }).join('');
+}
+
 function teamRowHTML(team){
+  const wr = winratePct(team.wins, team.losses);
   return `
     <tr data-id="${team.id}">
       <td>${team.name || team.id}</td>
       <td><input class="t-elo" type="number" step="1" value="${typeof team.elo === 'number' ? team.elo : 1000}" style="width:90px;"></td>
       <td>${team.wins || 0}</td>
       <td>${team.losses || 0}</td>
+      <td>${wr === null ? '—' : wr + '%'}</td>
+      <td><div class="team-map-chips">${teamMapStatsHTML(team)}</div></td>
       <td style="white-space:nowrap;">
         <button type="button" class="btn secondary team-save" data-id="${team.id}">Сохранить</button>
         <button type="button" class="btn secondary team-delete" data-id="${team.id}">Удалить</button>
@@ -443,7 +645,7 @@ function drawTeamsTable(){
   const games = [...new Set(teamsCache.map(x => x.game).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   if(!games.length){
     if(teamsTabsWrap) teamsTabsWrap.innerHTML = '';
-    teamsRowsBody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Рейтинг пока пуст.</div></td></tr>`;
+    teamsRowsBody.innerHTML = `<tr><td colspan="7"><div class="empty-state">Рейтинг пока пуст.</div></td></tr>`;
     return;
   }
   if(!teamsActiveGame || !games.includes(teamsActiveGame)) teamsActiveGame = games[0];
@@ -455,7 +657,7 @@ function drawTeamsTable(){
   const rows = teamsCache.filter(x => x.game === teamsActiveGame).sort((a, b) => (b.elo || 1000) - (a.elo || 1000));
   teamsRowsBody.innerHTML = rows.length
     ? rows.map(teamRowHTML).join('')
-    : `<tr><td colspan="5"><div class="empty-state">Для этой игры пока нет команд с рейтингом.</div></td></tr>`;
+    : `<tr><td colspan="7"><div class="empty-state">Для этой игры пока нет команд с рейтингом.</div></td></tr>`;
 }
 
 function startTeamsListener(){
@@ -756,7 +958,7 @@ function userAdminCardHTML(u){
       <div style="display:flex; gap:6px;">${roleBadge}${banBadge}</div>
     </div>
     <div class="admin-link-row">
-      <a href="account.html?u=${u.id}" target="_blank" rel="noopener" class="admin-inline-link">🔗 Профиль на сайте</a>
+      <a href="/account?u=${u.id}" target="_blank" rel="noopener" class="admin-inline-link">🔗 Профиль на сайте</a>
       ${faceitUrl ? `<a href="${faceitUrl}" target="_blank" rel="noopener" class="admin-inline-link admin-inline-link--faceit">Faceit ↗</a>` : `<span class="admin-inline-link admin-inline-link--muted">Faceit не привязан</span>`}
     </div>
     <div style="font-size:11.5px; color:var(--color-ink-soft); word-break:break-all;">UID: ${u.id}</div>
@@ -846,6 +1048,7 @@ auth.onAuthStateChanged(async (user) => {
   if(isAdminUser(user) || await checkModerator(user)){
     gamesListCache = await loadGamesList();
     if(tGameSelect) tGameSelect.innerHTML = gameOptionsHTML(gamesListCache[0]);
+    if(tMapGameSelect) tMapGameSelect.innerHTML = gameOptionsHTML(gamesListCache[0]);
     startScheduleListener();
     startTournamentsListener();
     startTeamsListener();
